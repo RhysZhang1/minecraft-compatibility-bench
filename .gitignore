@@ -8,5 +8,7 @@ __pycache__/
 *.class
 bridge/build/
 bridge/*.jar
+input/build/
+input/*.jar
 research/
 backups/

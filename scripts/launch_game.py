@@ -92,6 +92,7 @@ def main():
             jvm.append(expand(a))
     game = [expand(a) for a in version['arguments']['game'] if isinstance(a,str)]
     cmd = [str(JAVA), '-Xms1G','-Xmx6G','-Dfml.readTimeout=600',
+           '-javaagent:'+str(ROOT/'input/gamescaling-input-agent.jar'),
            '-Dfml.ignoreInvalidMinecraftCertificates=true','-Dfml.ignorePatchDiscrepancies=true',
            '-Dminecraft.client.jar='+str(CLIENT/'GT New Horizons 2.8.4.jar'),
            '-Dgamescaling.bridge='+str(ROOT/'runtime/bridge'),

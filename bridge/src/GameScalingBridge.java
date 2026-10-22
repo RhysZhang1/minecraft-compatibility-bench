@@ -13,6 +13,7 @@ import java.nio.file.*;
 import java.awt.image.BufferedImage;
 import javax.imageio.ImageIO;
 import java.util.*;
+import gsinput.VirtualInput;
 
 /** Client-local actions only: this mod never injects operating-system input. */
 @Mod(modid="gamescalingbridge",name="GameScaling local bridge",version="1.0",acceptableRemoteVersions="*")
@@ -24,7 +25,7 @@ public class GameScalingBridge {
     private String error="";
     private Object mc;
     private int cursorX=427,cursorY=240;
-    private long guiHold=0;
+    private long lastProbe=-1;
     private Set<Integer> held=new HashSet<Integer>();
     private Set<Integer> guiMouseHeld=new HashSet<Integer>();
     private void report(Throwable ex){
@@ -50,6 +51,9 @@ public class GameScalingBridge {
     }
     @EventHandler public void init(FMLInitializationEvent e)throws Exception {
         if(e.getSide().isClient()){
+            // Resolve both shims now so missing/unsupported isolation fails before actions.
+            cls("org.lwjglx.input.Mouse");cls("org.lwjglx.input.Keyboard");
+            if(!VirtualInput.ready())throw new IllegalStateException("Input isolation hooks are not ready");
             Files.createDirectories(root);
             Path prior=root.resolve("command.json");
             if(Files.exists(prior)){
@@ -73,6 +77,11 @@ public class GameScalingBridge {
                 fml.getMethod("connectToServerAtStartup",String.class,int.class).invoke(handler,"127.0.0.1",25565);
             }
             Object player=get(mc,"field_71439_g","thePlayer");
+            Path probe=root.resolve("input-probe.json");
+            if(Files.exists(probe)&&action==null){
+                long probeId=gson.fromJson(new String(Files.readAllBytes(probe),"UTF-8"),JsonObject.class).get("id").getAsLong();
+                if(probeId>lastProbe){lastProbe=probeId;probeInput(probeId);}
+            }
             if(player!=null){
                 if(((Number)get(player,"field_70725_aQ","deathTime")).intValue()>20)
                     method(player.getClass(),new String[]{"func_71004_bE","respawnPlayer"}).invoke(player);
@@ -119,6 +128,13 @@ public class GameScalingBridge {
                 state.addProperty("command_id",lastId);state.addProperty("busy",action!=null);state.addProperty("error",error);
                 state.addProperty("width",((Number)get(mc,"field_71443_c","displayWidth")).intValue());
                 state.addProperty("height",((Number)get(mc,"field_71440_d","displayHeight")).intValue());
+                state.addProperty("input_isolated",VirtualInput.ready());
+                state.addProperty("physical_events_blocked",VirtualInput.blocked.get());
+                Class<?> glfw=cls("org.lwjgl.glfw.GLFW");
+                long window=((Number)cls("org.lwjglx.opengl.Display").getMethod("getWindow").invoke(null)).longValue();
+                state.addProperty("physical_focused",((Number)glfw.getMethod("glfwGetWindowAttrib",long.class,int.class).invoke(null,window,0x20001)).intValue()!=0);
+                state.addProperty("window_visible",((Number)glfw.getMethod("glfwGetWindowAttrib",long.class,int.class).invoke(null,window,0x20004)).intValue()!=0);
+                state.addProperty("cursor_free",((Number)glfw.getMethod("glfwGetInputMode",long.class,int.class).invoke(null,window,0x33001)).intValue()==0x34001);
                 if(player!=null){
                     for(String[] pair:new String[][]{{"x","field_70165_t"},{"y","field_70163_u"},{"z","field_70161_v"},{"yaw","field_70177_z"},{"pitch","field_70125_A"}})
                         state.addProperty(pair[0],(Number)get(player,pair[1]));
@@ -138,6 +154,11 @@ public class GameScalingBridge {
         for(int i=0;i<names.length;i++)if(names[i].equals(k))return codes[i];return 0;
     }
     private void apply(Set<Integer> next)throws Exception{
+        VirtualInput.setKeys(next);
+        VirtualInput.begin();
+        try {applyVirtual(next);} finally {VirtualInput.end();}
+    }
+    private void applyVirtual(Set<Integer> next)throws Exception{
         Object screen=get(mc,"field_71462_r","currentScreen");
         Class<?> mouseClass=cls("org.lwjglx.input.Mouse");
         Method mouseEvent=mouseClass.getMethod("addButtonEvent",int.class,boolean.class);
@@ -167,6 +188,39 @@ public class GameScalingBridge {
         for(int n:held)if(!next.contains(n))set.invoke(null,n,false);
         for(int n:next){set.invoke(null,n,true);if(!held.contains(n))press.invoke(null,n);}
         held=next;
+    }
+    /** Replays hardware callback entry points inside this client; no OS input injection. */
+    private void probeInput(long id)throws Exception{
+        if(!held.isEmpty())throw new IllegalStateException("Pause actions before input probe");
+        Class<?> mouse=cls("org.lwjglx.input.Mouse"),keyboard=cls("org.lwjglx.input.Keyboard");
+        while((Boolean)mouse.getMethod("next").invoke(null)){}
+        while((Boolean)keyboard.getMethod("next").invoke(null)){}
+        int beforeX=field(mouse,"latestX").getInt(null),beforeY=field(mouse,"latestY").getInt(null);
+        long blocked=VirtualInput.blocked.get();
+        mouse.getMethod("addMoveEvent",double.class,double.class).invoke(null,123.0,234.0);
+        mouse.getMethod("addButtonEvent",int.class,boolean.class).invoke(null,0,true);
+        mouse.getMethod("addWheelEvent",double.class).invoke(null,1.0);
+        keyboard.getMethod("addGlfwKeyEvent",long.class,int.class,int.class,int.class,int.class,int.class).invoke(null,0L,65,0,1,0,97);
+        keyboard.getMethod("addCharEvent",int.class,int.class).invoke(null,0,97);
+        JsonObject result=new JsonObject();result.addProperty("id",id);
+        result.addProperty("timestamp",System.currentTimeMillis());
+        result.addProperty("physical_mouse_queue_empty",!(Boolean)mouse.getMethod("next").invoke(null));
+        result.addProperty("physical_keyboard_queue_empty",!(Boolean)keyboard.getMethod("next").invoke(null));
+        result.addProperty("physical_cursor_unchanged",beforeX==field(mouse,"latestX").getInt(null)&&beforeY==field(mouse,"latestY").getInt(null));
+        result.addProperty("blocked_callback_count",VirtualInput.blocked.get()-blocked);
+        Set<Integer> testKeys=new HashSet<Integer>(Arrays.asList(17,-100));
+        VirtualInput.setKeys(testKeys);
+        try{
+            result.addProperty("virtual_W_poll",(Boolean)keyboard.getMethod("isKeyDown",int.class).invoke(null,17));
+            result.addProperty("virtual_LB_poll",(Boolean)mouse.getMethod("isButtonDown",int.class).invoke(null,0));
+            VirtualInput.begin();
+            try{mouse.getMethod("addButtonEvent",int.class,boolean.class).invoke(null,0,true);}finally{VirtualInput.end();}
+            boolean present=(Boolean)mouse.getMethod("next").invoke(null);
+            result.addProperty("virtual_click_received",present&&(Integer)mouse.getMethod("getEventButton").invoke(null)==0&&(Boolean)mouse.getMethod("getEventButtonState").invoke(null));
+        }finally{VirtualInput.setKeys(held);}
+        result.addProperty("released_W_poll",!(Boolean)keyboard.getMethod("isKeyDown",int.class).invoke(null,17));
+        result.addProperty("released_LB_poll",!(Boolean)mouse.getMethod("isButtonDown",int.class).invoke(null,0));
+        json("input-probe-result.json",result);
     }
     @SubscribeEvent public void render(TickEvent.RenderTickEvent e){
         if(mc==null||e.phase!=TickEvent.Phase.END)return;

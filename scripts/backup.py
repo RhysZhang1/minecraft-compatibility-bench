@@ -16,6 +16,8 @@ def main():
             if f and (ROOT/f).is_file():add(tar,ROOT/f)
         mod=ROOT/'instances/client/mods/GameScalingBridge-1.0.jar'
         if mod.exists():tar.add(mod,arcname='release/GameScalingBridge-1.0.jar')
+        for jar in sorted((ROOT/'input').glob('*.jar')):
+            tar.add(jar,arcname='release/'+jar.name)
     bundle=folder/f'gamescaling-gtnh-history-{stamp}.bundle'
     subprocess.run(['git','bundle','create',str(bundle),'--all'],cwd=ROOT,check=True)
     outputs=[source,bundle]
@@ -23,6 +25,7 @@ def main():
         # Run after stopping client/server cleanly; never copy a live world save.
         full=folder/f'PRIVATE-gamescaling-gtnh-full-{stamp}.tar.zst'
         paths=[name for name in tracked if name and (ROOT/name).is_file()]
+        paths += [str(p.relative_to(ROOT)) for p in (ROOT/'input').glob('*.jar')]
         paths += [name for name in ['instances','models','runtime','logs'] if (ROOT/name).exists()]
         filelist='\0'.join(paths)+'\0'
         subprocess.run(['tar','-I','zstd -T4 -1','-cf',str(full),'--null','-T','-'],
