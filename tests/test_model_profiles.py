@@ -13,6 +13,7 @@ class ProfileTests(unittest.TestCase):
         self.assertEqual(cmd[cmd.index('--override-tensor')+1],'.*=CUDA0')
         self.assertIn('--mmproj-offload',cmd)
         self.assertTrue(meta['all_tensors_gpu'])
+        self.assertEqual(cmd[cmd.index('--cache-ram')+1],'0')
         self.assertTrue(manage.matches('model',cmd,manage.ROOT))
 
     def test_cpu_never_forces_cuda_tensors(self):
