@@ -1,0 +1,14 @@
+{
+  "properties": {
+    "difficulty": "peaceful",
+    "hardcore": "false",
+    "view-distance": "8",
+    "online-mode": "false",
+    "white-list": "false"
+  },
+  "commands": [
+    "difficulty peaceful",
+    "gamerule minecraft:keep_inventory true"
+  ],
+  "verify_keep_inventory": "gamerule minecraft:keep_inventory"
+}

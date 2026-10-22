@@ -1,10 +1,13 @@
 """Game resource settings, separate from model placement and private credentials."""
 from pathlib import Path
 import json,re
+import instance_config
 ROOT=Path(__file__).resolve().parents[1]
 
 def config():
     value=json.loads((ROOT/'game-settings.json').read_text())
+    profile=instance_config.config()
+    for role in ('server','client'):value[role].update(profile.get(role,{}).get('resources',{}))
     for role in ('server','client'):
         for key in ('min_heap','max_heap'):
             if not re.fullmatch(r'[1-9][0-9]*[GM]',value[role][key]):raise ValueError('Invalid game heap size')

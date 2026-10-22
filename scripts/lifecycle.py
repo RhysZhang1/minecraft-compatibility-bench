@@ -4,13 +4,15 @@ import argparse, contextlib, fcntl, hashlib, json, os, shutil, signal, socket, s
 from urllib.request import Request, ProxyHandler, build_opener
 import manage
 import model_config
+import instance_config
+import local_environment
 
 ROOT=Path(__file__).resolve().parents[1]
 RUNTIME=ROOT/'runtime'
 URL='http://127.0.0.1:8790'
 PORTS={'server':(25565,25575),'model':(8789,),'monitor':(8790,)}
 OPENER=build_opener(ProxyHandler({}))
-LABELS={'server':'测试服务器','client':'隐藏游戏客户端','model':'本地模型','monitor':'8790观察台'}
+LABELS={'server':'测试服务器','client':'隐藏游戏客户端','model':'本地模型','monitor':'8790观察台','display':'独立虚拟显示会话','bridge':'通用画面与输入通道'}
 STOP_REQUEST=RUNTIME/'stop.request'
 
 def say(message):
@@ -29,7 +31,7 @@ def load(path):
     except (OSError,ValueError):return {}
 
 def save_control(enabled):
-    p=RUNTIME/'control.json';value=load(p);value['enabled']=enabled
+    p=instance_config.control_file();p.parent.mkdir(parents=True,exist_ok=True);value=load(p);value['enabled']=enabled
     tmp=p.with_suffix('.lifecycle.tmp');tmp.write_text(json.dumps(value,ensure_ascii=False));tmp.replace(p)
     if manage.owned('monitor'):
         try:http(URL+'/api/control',{'enabled':enabled})
@@ -68,12 +70,15 @@ def run(args):
         raise
 
 def preflight():
+    import prepare_release
+    prepare_release.prepare()
     cancelled()
-    if not (os.environ.get('DISPLAY') or os.environ.get('WAYLAND_DISPLAY')):
+    instance=instance_config.config();client=instance_config.client_directory();server=instance_config.server_directory()
+    if instance['backend']=='forge1710-lwjgl3ify' and not (os.environ.get('DISPLAY') or os.environ.get('WAYLAND_DISPLAY')):
         raise RuntimeError('需要在已登录的桌面会话中启动隐藏游戏客户端')
-    for tool in [manage.JAVA,os.environ.get('LLAMA_SERVER_BIN','/home/rhys/llama.cpp/build/bin/llama-server')]:
+    for tool in [instance_config.java(),local_environment.llama_server()]:
         if not os.access(tool,os.X_OK):raise RuntimeError('缺少可执行程序：'+tool)
-    if not (ROOT/'instances/client').is_dir() or not (ROOT/'instances/server').is_dir():
+    if not client.is_dir() or (instance_config.managed() and not server.is_dir()):
         if manage.owned('client') or manage.owned('server'):raise RuntimeError('实例不完整，请先完全停止后再初始化')
         say('首次准备独立测试副本…');run([sys.executable,ROOT/'scripts/prepare_instances.py'])
     python=ROOT/'.venv/bin/python'
@@ -104,17 +109,37 @@ def preflight():
             if h.hexdigest()!=digest:raise RuntimeError('模型校验失败，请从备份恢复：'+str(path))
             cache[path.name]=fingerprint
     (RUNTIME/'model-verification.json').write_text(json.dumps(cache,indent=2))
-    for path in [ROOT/conf['template'],ROOT/'instances/server/java9args.txt',
-                 ROOT/'instances/client/GT New Horizons 2.8.4.json',ROOT/'instances/client/GT New Horizons 2.8.4.jar']:
+    java_probe=subprocess.run([instance_config.java(),'-version'],stdout=subprocess.PIPE,stderr=subprocess.STDOUT,text=True,timeout=10)
+    import re
+    match=re.search(r'version "([0-9]+)(?:\.([0-9]+))?',java_probe.stdout)
+    actual=int(match.group(2) if match and match.group(1)=='1' else match.group(1)) if match else None
+    metadata=load(client/instance['client']['manifest']);required=metadata.get('javaVersion',{}).get('majorVersion',8)
+    if actual is None or actual<required:raise RuntimeError('客户端要求Java '+str(required)+'或更新版本，请在setup.sh安装/配置对应运行时')
+    needed=[ROOT/conf['template'],client/instance['client']['manifest'],client/instance['client']['jar']]
+    if instance_config.managed():
+        needed.append(server/instance['server']['jar'])
+        needed.extend(server/a[1:] for a in instance['server'].get('jvm_args',[]) if a.startswith('@'))
+    for path in needed:
         if not path.is_file():raise RuntimeError('缺少启动资源：'+str(path))
-    jars=[ROOT/'instances/client/mods/GameScalingBridge-1.0.jar',ROOT/'input/gamescaling-input-agent.jar',ROOT/'input/gamescaling-input-state.jar']
+    jars=[client/'mods/GameScalingBridge-1.0.jar',ROOT/'input/gamescaling-input-agent.jar',ROOT/'input/gamescaling-input-state.jar']
     sources=[*ROOT.glob('bridge/src/**/*.java'),*ROOT.glob('input/src/**/*.java'),ROOT/'scripts/build_input.py',ROOT/'scripts/build_bridge.py']
-    if any(not p.exists() for p in jars) or max(p.stat().st_mtime_ns for p in sources)>min(p.stat().st_mtime_ns for p in jars):
+    if instance['backend']=='forge1710-lwjgl3ify' and (any(not p.exists() for p in jars) or max(p.stat().st_mtime_ns for p in sources)>min(p.stat().st_mtime_ns for p in jars)):
         if manage.owned('client'):raise RuntimeError('桥接需要重新编译，请先运行stop.sh再启动')
         if not shutil.which('javac') or not shutil.which('jar'):raise RuntimeError('编译桥接需要已安装的JDK（javac、jar）')
         say('编译游戏桥接及后台输入隔离…');run([python,ROOT/'scripts/build_bridge.py'])
-    if not (RUNTIME/'gtnh-context.json').exists():run([python,ROOT/'scripts/extract_gtnh_context.py'])
-    for name,ports in PORTS.items():
+    if instance['backend']=='virtual-x11':
+        for tool in ['kwin_wayland','Xwayland','dbus-run-session']:
+            if not shutil.which(tool):raise RuntimeError('独立虚拟显示需要 '+tool+'；请在setup.sh环境检测中查看')
+        native=ROOT/'input/libgamescaling-ei.so'
+        if not native.exists() or (ROOT/'input/ei.c').stat().st_mtime_ns>native.stat().st_mtime_ns:run([python,ROOT/'scripts/build_virtual_input.py'])
+        import client_bindings
+        if client_bindings.prepare():
+            sensor=ROOT/'sensors/gamescaling-sensors-agent.jar'
+            if not sensor.exists() or any(p.stat().st_mtime_ns>sensor.stat().st_mtime_ns for p in ROOT.glob('sensors/src/**/*.java')):
+                run([python,ROOT/'scripts/build_sensors.py'])
+    if instance.get('context_extractor') and not instance_config.path(instance['context_file']).exists():run([python,instance_config.path(instance['context_extractor'])])
+    ports_to_check={**PORTS,'server':(instance['connection']['port'],instance['server'].get('rcon_port',25575)) if instance_config.managed() else ()}
+    for name,ports in ports_to_check.items():
         if manage.owned_pids(name):continue
         for port in ports:
             with socket.socket() as sock:
@@ -144,16 +169,27 @@ def shutdown(force=False,only=None):
         try:
             http(URL+'/api/memory/checkpoint',{},timeout=8);say('续玩笔记已保存。')
         except (OSError,ValueError):say('未取得最新记忆确认，保留最近自动保存的续玩笔记。')
-    for name in ['monitor','client','server','model']:
+    for name in ['monitor','bridge','client','server','model','display']:
         if only is not None and name not in only:continue
         if manage.owned(name):say('停止'+LABELS[name]+('并保存世界…' if name=='server' else '…'))
         try:manage.stop(name,force)
+        except Exception as exc:errors.append(str(exc))
+    if only is None:
+        import vanilla_servers
+        try:vanilla_servers.stop_all()
         except Exception as exc:errors.append(str(exc))
     return errors
 
 def stopped_ports():
     result=[]
-    for port in [25565,25575,8789,8790]:
+    ports={8789,8790}
+    for profile in instance_config.settings()['instances'].values():
+        if profile['server'].get('managed'):
+            ports.add(profile['connection']['port'])
+            if profile['server'].get('rcon_port'):ports.add(profile['server']['rcon_port'])
+    import vanilla_servers
+    for profile in vanilla_servers.registry().values():ports.update((profile['port'],profile['rcon_port']))
+    for port in sorted(ports):
         with socket.socket() as sock:
             sock.settimeout(.3)
             if sock.connect_ex(('127.0.0.1',port))==0:result.append(port)
@@ -164,7 +200,7 @@ def cold_start(args):
     STOP_REQUEST.unlink(missing_ok=True)
     try:
         if args.model:model_config.select(args.model)
-        say('检查运行环境、模型及启动资源…');preflight()
+        say('启动实例：'+instance_config.config()['label']);say('检查运行环境、模型及启动资源…');preflight()
         if manage.owned('model'):
             argv,_=manage.inspect(manage.owned('model'))
             current_cpu='--device' in argv and argv[argv.index('--device')+1]=='none'
@@ -173,21 +209,25 @@ def cold_start(args):
             if str(ROOT/model_config.config()['model']) not in argv:
                 raise RuntimeError('正在运行另一个大小的模型，请先停止模型服务或stop.sh再切换')
         save_control(False)
-        for name in ['server','model']:
+        if instance_config.config()['backend']=='virtual-x11':
+            if manage.start('display'):started.append('display')
+            wait_ready('独立虚拟显示会话',lambda:load(RUNTIME/'virtual-display.json').get('DISPLAY'),['display'],60)
+            if manage.start('bridge'):started.append('bridge')
+        for name in (['server'] if instance_config.managed() else [])+['model']:
             if manage.start(name,args.profile):started.append(name)
             else:say('复用已运行的'+LABELS[name])
         sys.path.insert(0,str(ROOT/'src'));import server_console
-        wait_ready('测试服务器和命令接口',lambda:server_console.execute('list'),['server'],args.timeout)
+        if instance_config.console_enabled():wait_ready('测试服务器和命令接口',lambda:server_console.execute('list'),['server'],args.timeout)
         wait_ready('本地模型',lambda:http('http://127.0.0.1:8789/health').get('status')=='ok',['model'],args.timeout)
         for name in ['monitor','client']:
             if manage.start(name,args.profile):started.append(name)
             else:say('复用已运行的'+LABELS[name])
         def ready():
             value=http(URL+'/api/status');game=value.get('game',{})
-            return value if game.get('connected') and game.get('input_isolated') and game.get('window_visible') is False and value.get('console',{}).get('settings_applied') else None
-        status=wait_ready('隐藏客户端连接及观察台',ready,['server','model','client','monitor'],args.timeout)
+            return value if game.get('connected') and game.get('schema_version')==2 and game.get('instance')==instance_config.selected() and game.get('input_isolated') and game.get('window_visible') is False and value.get('console',{}).get('settings_applied') else None
+        status=wait_ready('隐藏客户端连接及观察台',ready,(['server'] if instance_config.managed() else [])+['model','client','monitor'],args.timeout)
         save_control(not args.paused)
-        report={'time':time.time(),'result':'ready','profile':args.profile,'model':model_config.selected(),'auto_enabled':not args.paused,
+        report={'time':time.time(),'result':'ready','instance':instance_config.selected(),'profile':args.profile,'model':model_config.selected(),'auto_enabled':not args.paused,
                 'processes':{name:manage.owned_pids(name) for name in manage.NAMES},'game':status['game']}
         (RUNTIME/'last-start.json').write_text(json.dumps(report,indent=2))
         say('全部就绪：'+URL+('（自动操作已暂停）' if args.paused else '（自动操作已开启）'))
@@ -214,11 +254,12 @@ def complete_stop(args):
     if errors:raise RuntimeError('\n'.join(errors))
     say('本项目已完全停止，Java客户端/服务器、模型和观察台均已退出。')
     if ports:say('以下端口仍由其他进程占用，已保留：'+str(ports))
-    else:say('25565、25575、8789、8790端口均已释放；存档、模型及日志已保留。')
+    else:say('已登记的本地服务端口均已释放；存档、模型及日志已保留。')
 
 def main():
-    parser=argparse.ArgumentParser(description='GTNH × GameScaling 一键启停')
+    parser=argparse.ArgumentParser(description='Minecraft × GameScaling 一键启停')
     parser.add_argument('action',choices=['start','stop','status'])
+    parser.add_argument('--instance',help='选择游戏实例；切换前先正常停止游戏服务')
     parser.add_argument('--model',choices=['2b','9b'],help='选择并记住模型；默认2b，9b保留可切换')
     parser.add_argument('--profile',choices=['balanced','cpu'],default='balanced',help='2B默认全GPU，9B默认8层GPU；cpu为纯CPU推理')
     parser.add_argument('--paused',action='store_true',help='全部就绪后保持自动操作暂停')
@@ -232,9 +273,16 @@ def main():
         return
     def terminate(*unused):raise KeyboardInterrupt()
     signal.signal(signal.SIGTERM,terminate)
-    if args.action=='stop':STOP_REQUEST.touch()
+    if args.action=='stop':
+        STOP_REQUEST.touch()
+        if os.environ.get('MC_SWITCH_CHILD')!='1':
+            for pid in manage.owned_pids('switch'):manage.signal_owned('switch',pid,signal.SIGTERM)
     try:
         with lifecycle_lock(args.action):
+            if args.instance and args.instance!=instance_config.selected():
+                if args.action!='start':raise RuntimeError('停止操作只作用于当前实例，请不要同时切换实例')
+                if any(manage.owned_pids(n) for n in ['server','client','monitor']):raise RuntimeError('切换实例前先运行stop.sh，避免将旧世界状态带入新实例')
+                instance_config.select(args.instance)
             if args.action=='start':cold_start(args)
             else:complete_stop(args)
     except (Exception,KeyboardInterrupt) as exc:

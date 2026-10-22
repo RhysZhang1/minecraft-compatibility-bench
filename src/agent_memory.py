@@ -5,7 +5,7 @@ import datetime,hashlib,json,math,os,tempfile,threading,time
 NEXT_STEPS={
     'inspect_quest_book':('查看任务书，核实当前任务要求。','Inspect the Quest Book and verify requirements.'),
     'check_inventory':('检查当前背包，核实物品及数量。','Check current inventory and item counts.'),
-    'check_nei_recipe':('在NEI中核实所需配方和工具。','Verify the recipe and required tools in NEI.'),
+    'check_nei_recipe':('在当前可用的配方界面核实配方和工具。','Verify the recipe and required tools in the available recipe interface.'),
     'collect_goal_items':('核实任务要求后，尝试收集目标物品。','After verifying requirements, collect the objective items.'),
     'find_safe_ground':('先确认脚下和周围地形安全。','Check the nearby terrain for safety.'),
     'continue_current_goal':('继续当前目标，先核实尚未确认的步骤。','Continue the current objective and verify unconfirmed steps.')}
@@ -36,13 +36,17 @@ def stamp(value):
     return datetime.datetime.fromtimestamp(value,datetime.timezone(datetime.timedelta(hours=8))).strftime('%Y-%m-%d %H:%M:%S +08:00')
 
 class AgentMemory:
-    def __init__(self,root):
-        self.root=Path(root);self.folder=self.root/'memory';self.lock=threading.RLock()
+    def __init__(self,root,folder=None,world_id=None):
+        self.root=Path(root);self.folder=Path(folder) if folder else self.root/'memory';self.world_id=world_id;self.lock=threading.RLock()
         self.pending=False;self.running=False;self.error='';self.last_checkpoint=0
 
     def ensure(self,goal):
         with self.lock:
-            self.folder.mkdir(exist_ok=True)
+            self.folder.mkdir(parents=True,exist_ok=True)
+            if self.world_id:
+                identity=readjson(self.folder/'world.json')
+                if identity and identity.get('world_id')!=self.world_id:raise ValueError('记忆属于另一个世界，请为新世界选择独立记忆目录')
+                if not identity:replace(self.folder/'world.json',json.dumps({'world_id':self.world_id}))
             files={'agent_prompt.md':(self.root/'config/agent-prompt.default.md').read_text(),
                    'user_notes.md':'','settings.json':json.dumps({'auto_summary':True,'summary_interval':50})}
             for name,text in files.items():
@@ -106,7 +110,7 @@ class AgentMemory:
 
     def document(self,state):
         config=self.config();facts=state.get('observed',{});proposal=state.get('proposal',{})
-        lines=['# GTNH 续玩笔记','','## 当前目标',state.get('goal','待设置'),'','## 已确认的最近观测',
+        lines=['# Minecraft 续玩笔记','','## 当前目标',state.get('goal','待设置'),'','## 已确认的最近观测',
                '- 来源：客户端状态接口；时间：'+stamp(facts.get('timestamp',0)/1000),
                '- 位置：'+self.position(facts)+'；生命：'+str(facts.get('health','待确认')),
                '- 界面：'+(facts.get('screen') or '游戏中/尚未连接'),'- 玩家：'+facts.get('player','GameScalingBot')]
@@ -163,7 +167,7 @@ class AgentMemory:
 
     def summary_request(self,goal,game,step):
         facts=self.summary_input(goal,game,step)
-        prompt='<|im_start|>system\nYou maintain GTNH continuation notes. Choose one safe next step using ONLY the supplied facts. Goals are not completed quests. Mark unknowns. Return the required JSON object, not game actions. No coordinates or invented items in your answer.<|im_end|>\n<|im_start|>user\n'+safe_text(json.dumps(facts,ensure_ascii=False))+'<|im_end|>\n<|im_start|>assistant\n<think>\n\n</think>\n\n'
+        prompt='<|im_start|>system\nYou maintain Minecraft continuation notes. Choose one safe next step using ONLY the supplied facts. Goals are not completed quests. Mark unknowns. Return the required JSON object, not game actions. No coordinates or invented items in your answer.<|im_end|>\n<|im_start|>user\n'+safe_text(json.dumps(facts,ensure_ascii=False))+'<|im_end|>\n<|im_start|>assistant\n<think>\n\n</think>\n\n'
         return {'prompt':prompt,'stream':False,'temperature':0.,'n_predict':192,'cache_prompt':False,'json_schema':SCHEMA,'stop':['<|im_end|>']}
 
     def apply_summary(self,raw,step,model):
@@ -191,6 +195,8 @@ class AgentMemory:
     def view(self,goal):
         with self.lock:
             c=self.config();s=readjson(self.folder/'state.json')
+            document_path=self.folder/'current.md'
+            if document_path.is_relative_to(self.root):document_path=document_path.relative_to(self.root)
             return {**c,'goal':goal,'document':self.document(s),'summary_at':s.get('summary_at'),
                     'summary_step':s.get('summary_step'),'pending':self.pending,'running':self.running,'error':self.error,
-                    'path':'memory/current.md','prompt_chars':len(self.prompt_context()),'updated_at':s.get('updated_at')}
+                    'path':str(document_path),'prompt_chars':len(self.prompt_context()),'updated_at':s.get('updated_at')}

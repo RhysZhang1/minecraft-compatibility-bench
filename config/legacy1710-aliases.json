@@ -1,0 +1,16 @@
+{
+ "net.minecraft.client.Minecraft":{"fields":{"player":"field_71439_g","level":"field_71441_e","screen":"field_71462_r","hitResult":"field_71476_x","debugFPS":"field_71470_ab"},"methods":{"getInstance.0":"func_71410_x","tick.0":"func_71407_l"}},
+ "net.minecraft.entity.Entity":{"fields":{"posX":"field_70165_t","posY":"field_70163_u","posZ":"field_70161_v","rotationYaw":"field_70177_z","rotationPitch":"field_70125_A","onGround":"field_70122_E","yOffset":"field_70129_M"}},
+ "net.minecraft.entity.EntityLivingBase":{"methods":{"getHealth.0":"func_110143_aJ"}},
+ "net.minecraft.entity.player.EntityPlayer":{"fields":{"inventory":"field_71071_by"}},
+ "net.minecraft.entity.player.InventoryPlayer":{"fields":{"selected":"field_70461_c"},"methods":{"getContainerSize.0":"func_70302_i_","getItem.1":"func_70301_a"}},
+ "net.minecraft.item.ItemStack":{"fields":{"count":"field_77994_a"},"methods":{"getItem.0":"func_77973_b","getDisplayName.0":"func_82833_r"}},
+ "net.minecraft.item.Item":{"fields":{"itemRegistry":"field_150901_e"}},
+ "net.minecraft.block.Block":{"fields":{"blockRegistry":"field_149771_c"}},
+ "net.minecraft.util.RegistryNamespaced":{"methods":{"getNameForObject.1":"func_148750_c"}},
+ "net.minecraft.world.World":{"methods":{"getBlock.3":"func_147439_a"}},
+ "net.minecraft.util.MovingObjectPosition":{"fields":{"typeOfHit":"field_72313_a","x":"field_72311_b","y":"field_72312_c","z":"field_72309_d"}},
+ "net.minecraft.client.gui.GuiScreen":{"fields":{"width":"field_146294_l","height":"field_146295_m"}},
+ "net.minecraft.client.gui.inventory.GuiInventory":{},
+ "net.minecraft.client.gui.GuiGameOver":{}
+}

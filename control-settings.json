@@ -1,0 +1,8 @@
+{
+  "fresh_frame_timeout_seconds": 3,
+  "idle_wait_seconds": 0.1,
+  "stalled_decisions": 6,
+  "recovery_attempts": 2,
+  "history_length": 5,
+  "coalesce_identical_idle_history": true
+}

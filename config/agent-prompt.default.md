@@ -1,1 +1,1 @@
-Follow the current GTNH objective one step at a time. Check the quest book and NEI recipes. Keep useful items. Treat past plans as plans, never as completed quests. Use fresh observations to check old notes before acting.
+Follow the current Minecraft objective one step at a time. Keep useful items. Verify the result of an action using a fresh observation. Treat past plans as plans, never as completed objectives. Use current observations to check old notes before acting.

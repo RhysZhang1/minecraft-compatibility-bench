@@ -5,8 +5,8 @@ ROOT=Path(__file__).resolve().parents[1]
 sys.path.insert(0,str(ROOT/'src'))
 from server_console import configure
 import model_config
-JAVA=os.environ.get('MINECRAFT_JAVA_BIN','/home/rhys/.local/share/hmcl/java/linux-x86_64/mojang-java-runtime-epsilon/bin/java')
-NAMES=('server','client','model','monitor')
+import instance_config
+NAMES=('display','server','client','bridge','model','monitor')
 
 def inspect(pid):
     try:
@@ -24,7 +24,9 @@ def matches(name,argv,cwd):
     def python_script(path):
         return executable.startswith('python') and len(argv)>1 and argv[1]==str(ROOT/path)
     if name=='server':
-        return executable=='java' and cwd==ROOT/'instances/server' and '-jar' in argv and 'lwjgl3ify-forgePatches.jar' in argv
+        if executable!='java' or '-jar' not in argv:return False
+        return any(p.get('server',{}).get('managed') and cwd==instance_config.path(p['server']['directory'],ROOT)
+            and argv.index('-jar')+1<len(argv) and argv[argv.index('-jar')+1]==p['server']['jar'] for p in instance_config.settings()['instances'].values())
     if name=='client':
         return python_script('scripts/launch_game.py') or (executable=='java' and '-Dgamescaling.bridge='+str(ROOT/'runtime/bridge') in argv)
     if name=='model':
@@ -33,6 +35,9 @@ def matches(name,argv,cwd):
         signature=any(path in argv for path in models) and all(value in argv for value in ['-m','--mmproj','--alias','gamescaling','--port','8789'])
         return wrapper or python_script('scripts/serve_model.py') or signature
     if name=='monitor':return python_script('src/monitor.py')
+    if name=='display':return python_script('scripts/virtual_display.py')
+    if name=='bridge':return python_script('scripts/virtual_bridge.py')
+    if name=='switch':return python_script('scripts/switch_instance.py')
     return False
 
 def owned_pids(name):
@@ -50,6 +55,8 @@ def owned(name):
 def start(name,profile='balanced'):
     from game_config import config as game_config
     game=game_config()
+    conf=instance_config.config();server=conf['server']
+    if name=='server' and not server.get('managed'):return False
     pids=owned_pids(name)
     if len(pids)>1:raise RuntimeError(f'{name} 有多个本项目进程，请先运行 stop.sh 完整停止')
     if pids:
@@ -60,13 +67,15 @@ def start(name,profile='balanced'):
         (ROOT/'runtime/bridge/state.json').unlink(missing_ok=True)
     cwd=ROOT
     args={
-      'server':[JAVA,'-Xms'+game['server']['min_heap'],'-Xmx'+game['server']['max_heap'],'-Dfml.readTimeout=600','@java9args.txt','-jar','lwjgl3ify-forgePatches.jar','nogui'],
+      'display':[str(ROOT/'.venv/bin/python'),str(ROOT/'scripts/virtual_display.py'),'serve'],
+      'bridge':[str(ROOT/'.venv/bin/python'),str(ROOT/'scripts/virtual_bridge.py')],
+      'server':[instance_config.java(),'-Xms'+game['server']['min_heap'],'-Xmx'+game['server']['max_heap'],'-Dfml.readTimeout=600',*server.get('jvm_args',[]),'-jar',server['jar'],'nogui'],
       'client':[str(ROOT/'.venv/bin/python'),str(ROOT/'scripts/launch_game.py')],
       'model':['bash',str(ROOT/'scripts/serve_model.sh'),profile],
       'monitor':[str(ROOT/'.venv/bin/python'),str(ROOT/'src/monitor.py')]}[name]
     stdin=subprocess.DEVNULL
     if name=='server':
-        configure();cwd=ROOT/'instances/server';fifo=ROOT/'runtime/server.stdin'
+        configure();cwd=instance_config.server_directory(ROOT);fifo=ROOT/'runtime/server.stdin'
         if fifo.exists() and not stat.S_ISFIFO(fifo.stat().st_mode):raise RuntimeError('runtime/server.stdin 不是命名管道')
         if not fifo.exists():os.mkfifo(fifo,0o600)
         stdin=os.open(fifo,os.O_RDWR)

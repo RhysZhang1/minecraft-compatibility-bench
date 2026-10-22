@@ -2,9 +2,11 @@
 from pathlib import Path
 import hashlib,importlib.metadata,json,os,shutil,struct,subprocess,sys
 ROOT=Path(__file__).resolve().parents[1]
+sys.path.insert(0,str(ROOT/'src'))
+import local_environment
 SOURCE=ROOT/'models/GameScaling-2B-S1'
 OUTPUT=ROOT/'models/GameScaling-2B-S1-GGUF'
-LLAMA=Path(os.environ.get('LLAMA_CPP_SOURCE','/home/rhys/llama.cpp'))
+LLAMA=local_environment.llama_source()
 REVISION='8036a8f05659f3ce79c4b98f0ccbee4142a0b53d'
 SOURCE_HASH='320dd2f7e1804faceae76fbfd6bfb83f17c9294a369bebf07cf1f3278dec3351'
 

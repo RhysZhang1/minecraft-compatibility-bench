@@ -21,7 +21,7 @@ class ProtocolTests(unittest.TestCase):
         messages=[{'role':'system','content':monitor.system_prompt()},
             {'role':'user','content':[{'type':'text','text':'current game screen'}, {'type':'image_url','image_url':{'url':'old-image'}}]},
             {'role':'assistant','content':action},
-            {'role':'user','content':[{'type':'text','text':'current game screen'}, {'type':'image_url','image_url':{'url':'new-image'}}]}]
+            {'role':'user','content':[{'type':'text','text':monitor.observation_text()}, {'type':'image_url','image_url':{'url':'new-image'}}]}]
         official=Environment().from_string(path.read_text()).render(messages=messages,add_generation_prompt=True)
         expected=official.replace('<|vision_start|><|image_pad|><|vision_end|>',marker)+'<think>'
         self.assertEqual(actual['prompt_string'],expected)

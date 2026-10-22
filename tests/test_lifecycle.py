@@ -52,7 +52,7 @@ class OwnershipTests(unittest.TestCase):
             if name=='client':raise RuntimeError('test failure')
         with patch.object(lifecycle,'save_control'),patch.object(manage,'owned',return_value=None),patch.object(manage,'stop',side_effect=stop):
             errors=lifecycle.shutdown()
-        self.assertEqual(visited,['monitor','client','server','model'])
+        self.assertEqual(visited,['monitor','bridge','client','server','model','display'])
         self.assertEqual(errors,['test failure'])
 
 if __name__=='__main__':unittest.main()
