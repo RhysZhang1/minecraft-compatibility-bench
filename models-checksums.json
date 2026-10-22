@@ -1,0 +1,10 @@
+{
+  "GameScaling-9B-S1.Q4_K_M.gguf": {
+    "size": 5629109600,
+    "sha256": "7152579443a9bd43f2ce1e5e9fbc1574a5a015fabf7b71b6113332fa5b993089"
+  },
+  "GameScaling-9B-S1.mmproj-f16.gguf": {
+    "size": 918166048,
+    "sha256": "3a09c6f0d04105f05c79e0f3b0ae66a5190b28fc691b5525efc30ee8aa300dd2"
+  }
+}

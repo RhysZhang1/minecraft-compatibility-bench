@@ -2,7 +2,7 @@
 from pathlib import Path
 import argparse, json, os, signal, subprocess, time
 ROOT=Path(__file__).resolve().parents[1]
-JAVA='/home/rhys/.local/share/hmcl/java/linux-x86_64/mojang-java-runtime-epsilon/bin/java'
+JAVA=os.environ.get('MINECRAFT_JAVA_BIN','/home/rhys/.local/share/hmcl/java/linux-x86_64/mojang-java-runtime-epsilon/bin/java')
 
 def owned(name):
     try:

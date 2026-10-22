@@ -3,12 +3,17 @@ set -euo pipefail
 ROOT="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd -P)"
 ENGINE="${LLAMA_SERVER_BIN:-/home/rhys/llama.cpp/build/bin/llama-server}"
 PROFILE="${1:-balanced}"
-MODEL="$ROOT/models/GameScaling-9B-S1-GGUF/GameScaling-9B-S1.Q4_K_M.gguf"
+MODEL="$ROOT/models/GameScaling-9B-S1-GGUF/GameScaling-9B-S1.Q4_K_M.compat.gguf"
 VISION="$ROOT/models/GameScaling-9B-S1-GGUF/GameScaling-9B-S1.mmproj-f16.gguf"
 if [[ "$PROFILE" == "cpu" ]]; then
     DEVICE_ARGS=(--device none --gpu-layers 0 --no-mmproj-offload)
 elif [[ "$PROFILE" == "balanced" ]]; then
-    DEVICE_ARGS=(--gpu-layers "${MODEL_GPU_LAYERS:-8}" --no-mmproj-offload)
+    DEVICE_ARGS=(--gpu-layers "${MODEL_GPU_LAYERS:-8}")
+    if [[ "${MODEL_VISION_GPU:-1}" == "1" ]]; then
+        DEVICE_ARGS+=(--mmproj-offload)
+    else
+        DEVICE_ARGS+=(--no-mmproj-offload)
+    fi
 else
     echo "Usage: serve_model.sh [cpu|balanced]" >&2; exit 2
 fi

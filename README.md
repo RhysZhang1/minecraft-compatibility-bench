@@ -1,0 +1,85 @@
+# GameScaling × GT New Horizons 本地实验
+
+将论文 GameScaling 的 Minecraft 操作策略接入 GTNH 2.8.4 / Minecraft 1.7.10。
+
+## 组成
+
+- 模型：GameScaling-9B-S1 的第三方 Q4_K_M 转换，配套该检查点的 FP16 视觉投影。
+- 推理：llama.cpp，支持纯 CPU 或少量层 GPU 卸载。与原始 BF16 的能力差异未作等价性验证。
+- 游戏：HMCL 中现有客户端和桌面服务器的独立副本，使用专用离线角色 GameScalingBot。
+- 桥接：客户端 Forge 模组内截取渲染画面、施加短时按键和 GUI 事件。操作不发送到整个桌面。
+- 观察台：`http://127.0.0.1:8790`，显示截图、实际模型输出、动作、运行记录、内存和显存。
+
+## 安装与复现
+
+先准备合法取得的 GTNH 2.8.4 客户端、服务端及对应 Java。当前启动器读取本机 HMCL 依赖与资源，路径在 `scripts/launch_game.py` 中。迁移时调整 `SOURCE` 和 `JAVA`，不需要 HMCL 账号文件或登录令牌。
+
+```bash
+uv venv --python 3.11 .venv
+uv pip install --python .venv/bin/python -r requirements.txt
+.venv/bin/python scripts/prepare_instances.py
+bash scripts/download_models.sh
+.venv/bin/python scripts/normalize_gguf.py
+.venv/bin/python scripts/extract_gtnh_context.py
+.venv/bin/python scripts/build_bridge.py
+.venv/bin/python scripts/manage.py start all --profile balanced
+```
+
+默认 llama.cpp 路径为 `/home/rhys/llama.cpp/build/bin/llama-server`，可以通过 `LLAMA_SERVER_BIN` 覆盖。用支持 Qwen3.5 多模态的构建；记录的本机版本为 build 10394 / commit 680a9ae63。
+
+```bash
+# 将模型切回纯 CPU；客户端仍使用显卡渲染。
+.venv/bin/python scripts/manage.py restart model --profile cpu
+
+# 默认只卸载 8 层，其余在内存。按实测余量调整。
+MODEL_GPU_LAYERS=8 MODEL_VISION_GPU=1 .venv/bin/python scripts/manage.py restart model --profile balanced
+
+# 只停止本实验进程；服务器通过 stop 指令正常保存。
+.venv/bin/python scripts/manage.py stop all
+```
+
+在本机终端运行生命周期脚本；受限容器中的进程列表不一定能看到桌面上的进程。
+
+## 文件与适配范围
+
+| 路径 | 内容 |
+|---|---|
+| `bridge/src/` | 客户端 Forge 桥接源码 |
+| `src/monitor.py` | 观察台与截图→模型→动作闭环 |
+| `scripts/` | 下载、编译、启动和备份 |
+| `docs/ISSUES.md` | 实际问题与解决记录 |
+| `models-manifest.json` | 上游仓库与固定版本 |
+| `vendor/GameScaling/` | Apache-2.0 官方推理工具快照 |
+| `instances/` | 私有测试副本，不提交 Git |
+| `runtime/episodes/` | 实际推理输入、输出和动作记录，不提交 Git |
+
+GTNH 测试服务器绑定 `127.0.0.1:25565`，模型绑定 `127.0.0.1:8789`，观察台绑定 `127.0.0.1:8790`。模型使用本地推理，不发送游戏画面到外部 API。原桌面服务器与原 HMCL 客户端不作覆盖写入。
+
+测试副本将服务端视距设为 4、难度设为和平，以便先验证慢速模型闭环；这不是原难度下的游戏能力评测。客户端渲染 854×480，独立按键设置，启动堆上限 6 GiB；服务器堆上限 4 GiB。
+
+## 如何理解模型表现
+
+S1 学习的是 Minecraft 轨迹，不保证理解 GTNH 的任务书、科技树或修改配方。本项目通过明确的 GTNH 规则提示和 GUI 操作适配接入；没有对 GTNH 重新训练，也没有保证自主完成科技流程。
+
+`scripts/extract_gtnh_context.py` 从本机整合包的 BetterQuesting 配置提取前两项任务的物品数量与消耗规则，并保留源文件哈希。推理提示会使用该结构化上下文；完整任务书原文不进入源码发布包。第一次在其他机器准备实例后，先运行这个提取脚本。
+
+动作使用 200ms 包、6 个按键子步骤。执行器按渲染事件调度，游戏逻辑仍以 Minecraft tick 工作，不能宣称每个子步骤都形成独立的服务器动作。所有按键在包结束后释放，解析失败不执行。
+
+观察台仅展示模型实际生成的推理文字。空推理代表模型直接输出动作，不补写解释。请求采用官方空历史推理块和 ChatML 结构，通过 llama.cpp 原生多模态 completion 接口保留完整生成文本。
+
+## 备份与 GitHub
+
+源码、适配记录及上游版本清单在本地 Git 保存。游戏二进制、世界、权重、账号和本机依赖不进入 GitHub 源码包。完整本地备份另含当前模型和测试副本，不能直接当作公开发布包。
+
+上游 GameScaling 推理代码使用 Apache-2.0，保留在 `vendor/GameScaling/LICENSE`。模型和整合包的权利与使用条款分别属于各上游。当前工程没有配置 Git 远程，也没有进行上传。
+
+```bash
+# 生成当前已提交代码的源文件包与完整本地 Git 历史。
+.venv/bin/python scripts/backup.py
+
+# 完整私有备份另包含模型、客户端、服务器、世界和运行证据。
+# 先正常停止客户端和服务器，避免复制写入中的世界。
+.venv/bin/python scripts/manage.py stop client
+.venv/bin/python scripts/manage.py stop server
+.venv/bin/python scripts/backup.py --full
+```

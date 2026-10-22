@@ -26,6 +26,7 @@ public class GameScalingBridge {
     private int cursorX=427,cursorY=240;
     private long guiHold=0;
     private Set<Integer> held=new HashSet<Integer>();
+    private Set<Integer> guiMouseHeld=new HashSet<Integer>();
     private void report(Throwable ex){
         while(ex instanceof InvocationTargetException&&ex.getCause()!=null)ex=ex.getCause();
         String msg=ex.toString();if(!msg.equals(error))ex.printStackTrace();error=msg;
@@ -50,6 +51,10 @@ public class GameScalingBridge {
     @EventHandler public void init(FMLInitializationEvent e)throws Exception {
         if(e.getSide().isClient()){
             Files.createDirectories(root);
+            Path prior=root.resolve("command.json");
+            if(Files.exists(prior)){
+                try{lastId=gson.fromJson(new String(Files.readAllBytes(prior),"UTF-8"),JsonObject.class).get("id").getAsLong();}catch(Exception ignored){}
+            }
             FMLCommonHandler.instance().bus().register(this);
             System.out.println("[GameScaling] local bridge initialized: "+root);
         }
@@ -94,8 +99,18 @@ public class GameScalingBridge {
                         int h=((Number)get(mc,"field_71440_d","displayHeight")).intValue();
                         cursorX=Math.max(0,Math.min(w-1,cursorX+Math.round(mouse.get(0).getAsFloat()*w/1000f)));
                         cursorY=Math.max(0,Math.min(h-1,cursorY+Math.round(mouse.get(1).getAsFloat()*h/1000f)));
-                        cls("org.lwjgl.input.Mouse").getMethod("setCursorPosition",int.class,int.class).invoke(null,cursorX,h-cursorY-1);
+                        // Keep the emulated mouse in this client only. GLFW cursor
+                        // warping is unavailable on some lwjgl3ify/Wayland paths.
+                        Class<?> mouseClass=cls("org.lwjglx.input.Mouse");
+                        for(String name:new String[]{"x","latestX"})field(mouseClass,name).setInt(null,cursorX);
+                        for(String name:new String[]{"y","latestY"})field(mouseClass,name).setInt(null,h-cursorY-1);
                     }
+                    // Deliver the first pulse immediately: waiting for the next
+                    // rendered frame can otherwise skip a single 33ms GUI click.
+                    Set<Integer> first=new HashSet<Integer>();
+                    if(a.getAsJsonArray("steps").size()>0)
+                        for(JsonElement k:a.getAsJsonArray("steps").get(0).getAsJsonArray()){int n=key(k.getAsString());if(n!=0)first.add(n);}
+                    apply(first);
                 }
             }
             if(now-lastStatus>500){lastStatus=now;JsonObject state=new JsonObject();
@@ -124,20 +139,22 @@ public class GameScalingBridge {
     }
     private void apply(Set<Integer> next)throws Exception{
         Object screen=get(mc,"field_71462_r","currentScreen");
+        Class<?> mouseClass=cls("org.lwjglx.input.Mouse");
+        Method mouseEvent=mouseClass.getMethod("addButtonEvent",int.class,boolean.class);
+        for(Integer n:new HashSet<Integer>(guiMouseHeld))if(!next.contains(n)){
+            mouseEvent.invoke(null,n+100,false);guiMouseHeld.remove(n);
+        }
         if(screen!=null){
             int w=((Number)get(mc,"field_71443_c","displayWidth")).intValue();
             int h=((Number)get(mc,"field_71440_d","displayHeight")).intValue();
             int sw=((Number)get(screen,"field_146294_l","width")).intValue();
             int sh=((Number)get(screen,"field_146295_m","height")).intValue();
             int x=cursorX*sw/w,y=cursorY*sh/h;
-            for(int n:held)if(n<0&&!next.contains(n))
-                method(screen.getClass(),new String[]{"func_146286_b","mouseMovedOrUp"},int.class,int.class,int.class).invoke(screen,x,y,n+100);
             for(int n:next){
                 if(n<0){
                     if(!held.contains(n)){
-                        guiHold=System.currentTimeMillis();
-                        method(screen.getClass(),new String[]{"func_73864_a","mouseClicked"},int.class,int.class,int.class).invoke(screen,x,y,n+100);
-                    }else method(screen.getClass(),new String[]{"func_146273_a","mouseClickMove"},int.class,int.class,int.class,long.class).invoke(screen,x,y,n+100,System.currentTimeMillis()-guiHold);
+                        mouseEvent.invoke(null,n+100,true);guiMouseHeld.add(n);
+                    }
                 }else if(!held.contains(n)){
                     char ch=n==18?'e':n==19?'r':n==22?'u':n==57?' ':'\0';
                     method(screen.getClass(),new String[]{"func_73869_a","keyTyped"},char.class,int.class).invoke(screen,ch,n);
@@ -171,6 +188,10 @@ public class GameScalingBridge {
                 gl.getMethod("glReadPixels",int.class,int.class,int.class,int.class,int.class,int.class,ByteBuffer.class).invoke(null,0,0,w,h,6408,5121,pixels);
                 BufferedImage image=new BufferedImage(w,h,BufferedImage.TYPE_INT_RGB);
                 for(int y=0;y<h;y++)for(int x=0;x<w;x++){int i=(y*w+x)*4;image.setRGB(x,h-y-1,((pixels.get(i)&255)<<16)|((pixels.get(i+1)&255)<<8)|(pixels.get(i+2)&255));}
+                if(get(mc,"field_71462_r","currentScreen")!=null){
+                    java.awt.Graphics2D g=image.createGraphics();g.setColor(java.awt.Color.YELLOW);
+                    g.drawLine(cursorX-5,cursorY,cursorX+5,cursorY);g.drawLine(cursorX,cursorY-5,cursorX,cursorY+5);g.dispose();
+                }
                 Path tmp=root.resolve("frame.tmp.jpg");ImageIO.write(image,"jpg",tmp.toFile());Files.move(tmp,root.resolve("frame.jpg"),StandardCopyOption.REPLACE_EXISTING,StandardCopyOption.ATOMIC_MOVE);
             }
         }catch(Throwable ex){report(ex);}

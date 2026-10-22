@@ -9,3 +9,4 @@ __pycache__/
 bridge/build/
 bridge/*.jar
 research/
+backups/

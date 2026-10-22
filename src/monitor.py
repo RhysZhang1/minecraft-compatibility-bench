@@ -15,7 +15,7 @@ BRIDGE=ROOT/'runtime/bridge'
 ENGINE='http://127.0.0.1:8789'
 STATE={'phase':'等待客户端和模型就绪','enabled':True,'step':0,'raw':'','thinking':'',
        'last_action':'','latency':0,'errors':0,'parsed':0,'history':[],
-       'goal':'Observe the surroundings, find a safe nearby tree or loose flint, and begin the GTNH stone-age quest progression. Avoid water, cliffs and lava.','inference_started':None}
+       'goal':'Inspect the Quest Book with right click while it is selected in hotbar slot 1. Then find a safe patch of dirt and collect 8 dirt for the first GTNH quest. Avoid water, cliffs and lava.','inference_started':None}
 LOCK=threading.RLock()
 HISTORY=collections.deque(maxlen=5)
 ABORT=threading.Event()
@@ -40,10 +40,19 @@ def event(kind,**values):
     with (ROOT/'logs/events.jsonl').open('a') as f:f.write(json.dumps(record,ensure_ascii=False)+'\n')
 
 def system_prompt():
+    context=readjson(ROOT/'runtime/gtnh-context.json')
+    quest_hint=''
+    for quest in context.get('quests',[]):
+        parts=[]
+        for task in quest['tasks']:
+            parts.append((', '.join(str(x['count'])+' '+(x['ore_dictionary'] or x['item']) for x in task['items']))+(' (consumed)' if task['consume'] else ' (inventory check)'))
+        quest_hint+=quest['title']+': '+'; '.join(parts)+'. '
     return build_system_prompt('Minecraft 1.7.10 - GregTech New Horizons 2.8.4',rules=(
       'This is the GT New Horizons modpack, not vanilla progression. Recipes, tool requirements and block harvest levels are modified. '
       'Use visible quest-book guidance and NEI recipes rather than assuming vanilla crafting. '
-      'Early progression involves exploration, flint, wood and primitive tools. Hand chopping and vanilla wooden tools may not work as expected. '
+      'Early progression involves shelter, dirt, gravel, wood and primitive tools. Hand chopping and vanilla wooden tools may not work as expected. '
+      'The starting hotbar item is a Quest Book, not an axe. Verify the actually selected item on screen before assuming a tool is equipped. '
+      'The following requirements were extracted from this installed pack version: '+quest_hint+
       'Avoid destroying player buildings. Do not type chat commands. Keep the camera near the horizon when travelling. '
       'The game runs while you infer, but every action packet is executed only for 200ms, then ALL keys are released. '
       'Only act on the current screenshot. Close a blocking overlay with Esc when necessary. '
@@ -54,15 +63,18 @@ def system_prompt():
         *[(n,'Select hotbar slot '+str(i)) for i,n in enumerate(['one','two','three','four','five','six','seven','eight','nine'],1)],
         ('R','Show the recipe under the mouse in inventory'),('U','Show uses in NEI')],mouse_aim=True)
 
-def make_prompt(frame):
+def make_prompt(frame,marker=None):
+    if marker is None:
+        with request('/props',timeout=5) as response:
+            marker=json.load(response)['media_marker']
     # Same ChatML and empty historical <think> spans as the official checkpoint.
     prompt='<|im_start|>system\n'+system_prompt()+'<|im_end|>\n'
     images=[]
     for old,action in HISTORY:
-        prompt+='<|im_start|>user\ncurrent game screen<__media__><|im_end|>\n'
+        prompt+='<|im_start|>user\ncurrent game screen'+marker+'<|im_end|>\n'
         prompt+='<|im_start|>assistant\n<think>\n\n</think>\n\n'+action+'<|im_end|>\n'
         images.append(old)
-    prompt+='<|im_start|>user\ncurrent game screen<__media__><|im_end|>\n<|im_start|>assistant\n<think>'
+    prompt+='<|im_start|>user\ncurrent game screen'+marker+'<|im_end|>\n<|im_start|>assistant\n<think>'
     images.append(frame)
     return {'prompt_string':prompt,'multimodal_data':images}
 
@@ -106,15 +118,17 @@ def loop():
                     if chunk.get('stop'):finish=chunk
                     if ABORT.is_set():break
             raw='<think>'+text
-            if ACTION_END not in raw and finish.get('stopped_word'):raw+=ACTION_END
+            if ACTION_END not in raw and finish.get('stop_type')=='word' and finish.get('stopping_word')==ACTION_END:
+                raw+=ACTION_END
             a=parse_action(raw)
             reasoning,_,closed=split_reasoning(raw)
             elapsed=time.monotonic()-t0
-            STATE.update(thinking=reasoning,latency=elapsed,step=STATE['step']+1,
+            STATE.update(raw=raw,thinking=reasoning,latency=elapsed,step=STATE['step']+1,
                          parsed=STATE['parsed']+int(a.parsed),last_action=a.history_text,inference_started=None)
-            record={'step':STATE['step'],'raw':raw,'reasoning':reasoning,'action':a.history_text,
+            record={'timestamp':time.time(),'step':STATE['step'],'raw':raw,'reasoning':reasoning,'action':a.history_text,
                     'parsed':a.parsed,'latency':elapsed,'game_before':game,'timings':finish.get('timings',{})}
-            atomic(evidence/(stamp+'.json'),record);event('decision',**record)
+            record['executed']=False
+            atomic(evidence/(stamp+'.json'),record)
             HISTORY.append((frame,a.history_text))
             # Only an actual completed, valid packet may move the game.
             if a.parsed and STATE['enabled']:
@@ -123,11 +137,14 @@ def loop():
                 STATE['phase']='客户端执行200毫秒动作'
                 deadline=time.monotonic()+10
                 while time.monotonic()<deadline:
-                    if readjson(BRIDGE/'completed.json').get('id')==command_id:break
+                    if readjson(BRIDGE/'completed.json').get('id')==command_id:
+                        record.update(executed=True,command_id=command_id,game_after=readjson(BRIDGE/'state.json'))
+                        break
                     time.sleep(.05)
                 else:raise RuntimeError('客户端没有确认动作完成；已停止发送后续动作')
             elif not a.parsed:
                 STATE['errors']+=1;STATE['phase']='模型输出未通过解析，保持静止';time.sleep(2)
+            atomic(evidence/(stamp+'.json'),record);event('decision',**record)
         except Exception as exc:
             STATE['errors']+=1;STATE.update(phase='等待恢复：'+str(exc),inference_started=None)
             event('error',message=str(exc));traceback.print_exc();HISTORY.clear();time.sleep(5)
@@ -151,7 +168,10 @@ def telemetry():
 
 def status():
     with LOCK:result=dict(STATE)
-    result['game']=readjson(BRIDGE/'state.json');result['memory']=memory();result['gpu']=dict(GPU)
+    result['game']=readjson(BRIDGE/'state.json')
+    if time.time()-result['game'].get('timestamp',0)/1000>10:
+        result['game']['connected']=False
+    result['memory']=memory();result['gpu']=dict(GPU)
     result['processes']={}
     for name in ['server','client','model']:
         try:
@@ -186,6 +206,12 @@ class Handler(BaseHTTPRequestHandler):
 
 def main():
     BRIDGE.mkdir(parents=True,exist_ok=True);(ROOT/'logs').mkdir(exist_ok=True)
+    records=[readjson(p) for p in sorted((ROOT/'runtime/episodes').glob('*.json'))]
+    if records:
+        last=records[-1]
+        STATE.update(step=max(r.get('step',0) for r in records),parsed=sum(bool(r.get('parsed')) for r in records),
+            raw=last.get('raw',''),thinking=last.get('reasoning',''),last_action=last.get('action',''),latency=last.get('latency',0))
+        STATE['history']=[dict(time=r.get('timestamp',time.time()),kind='decision',**r) for r in records[-10:]]
     threading.Thread(target=loop,daemon=True).start();threading.Thread(target=telemetry,daemon=True).start()
     print('GTNH monitor: http://127.0.0.1:8790',flush=True)
     ThreadingHTTPServer(('127.0.0.1',8790),Handler).serve_forever()

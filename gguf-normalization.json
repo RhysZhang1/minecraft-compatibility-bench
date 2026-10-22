@@ -1,0 +1,27 @@
+{
+  "source": "GameScaling-9B-S1.Q4_K_M.gguf",
+  "output": "GameScaling-9B-S1.Q4_K_M.compat.gguf",
+  "edits": [
+    {
+      "key": "qwen35.block_count",
+      "offset": 833,
+      "old": 33,
+      "new": 32
+    },
+    {
+      "key": "qwen35.nextn_predict_layers",
+      "offset": 1333,
+      "old": 1,
+      "new": 0
+    },
+    {
+      "key": "qwen35.attention.recurrent_layers",
+      "offset": 1536,
+      "rename": "qwen35.attention.recurrent_unused",
+      "reason": "derive main-layer attention pattern from interval=4"
+    }
+  ],
+  "tensor_data_start": 10968416,
+  "tensor_sha256_unchanged": "eb2cbf5d34e3cb4366156954d292f4ff20a7a12f3b4cf39ee67506e09a885776",
+  "output_sha256": "e5366125e792768993500c5392cea33a21e5d6866f8b17a4135644872155aa88"
+}

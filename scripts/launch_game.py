@@ -3,9 +3,9 @@ from pathlib import Path
 import json, os, re, subprocess, sys, uuid, zipfile
 
 ROOT = Path(__file__).resolve().parents[1]
-SOURCE = Path('/home/rhys/.config/hmcl/.minecraft')
+SOURCE = Path(os.environ.get('HMCL_GAME_ROOT','/home/rhys/.config/hmcl/.minecraft'))
 CLIENT = ROOT / 'instances/client'
-JAVA = Path('/home/rhys/.local/share/hmcl/java/linux-x86_64/mojang-java-runtime-epsilon/bin/java')
+JAVA = Path(os.environ.get('MINECRAFT_JAVA_BIN','/home/rhys/.local/share/hmcl/java/linux-x86_64/mojang-java-runtime-epsilon/bin/java'))
 
 def allowed(rules):
     if not rules:

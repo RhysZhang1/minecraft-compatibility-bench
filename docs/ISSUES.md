@@ -11,3 +11,12 @@
 - GTNH 主菜单由 Custom Main Menu 替换成 `GuiCustom`；自动连接识别该菜单，并处理断线重连。
 - 直接构造原版 `GuiConnecting` 绕过了 Forge 的握手初始化，导致 `playClientBlock` 空指针。改用 `FMLClientHandler.connectToServerAtStartup`，保留 Forge 正常握手链路。
 - 背包/任务书界面需要将模型鼠标位移映射为 GUI 坐标并派发界面点击、释放、拖动与键盘事件；仅设置游戏 KeyBinding 无法完成 GUI 操作。
+- mradermacher 9B-S1 Q4_K_M 转换文件包含 32 层主权重（blk.0–31），却声明 `qwen35.block_count=33`、`nextn_predict_layers=1`，没有第33层 MTP 张量。llama.cpp 报 `blk.32.attn_norm.weight not found`。保留原文件，在兼容副本中将两个元数据值改为 32 / 0；逐字节哈希验证所有 tensor data 不变，记录 `gguf-normalization.json`。这没有补造预测层或改写主模型权重。
+- lwjgl3ify 的 `Mouse.setCursorPosition` 在桥接反射路径得到空 GLFW 窗口句柄。GUI 点击坐标改由桥接直接派发，并用客户端内的逻辑鼠标位置保持模型观测一致；不依赖操作系统鼠标输入。
+- 修复 GGUF 主层数后，原有 recurrent_layers 数组仍长33。兼容副本保留该数组为未使用元数据，使用原文件的 full_attention_interval=4 推导32层模式，并验证它与原数组前32项完全一致；所有张量字节不变。
+- 当前 llama.cpp 的媒体占位符含每次启动生成的随机部分，不能照文档示例硬编码 `<__media__>`。客户端从 `/props.media_marker` 获取实际值，否则报图像数量与标记数量不匹配。
+- 原生 completion 接口会剥离 stop 字符串，当前版本通过 `stop_type=word`、`stopping_word` 返回终止原因。只有确认实际命中 `<|action_end|>` 时才恢复末尾标签；不能按另一个接口版本的 `stopped_word` 字段判断。
+- BetterQuesting 自定义按钮不能只直接调用 GuiScreen.mouseClicked：改为向 lwjgl3ify 的客户端本地鼠标事件队列派发按下/释放；已实测任务书主页的 Quests 按钮进入 GuiQuestLines，书签按钮进入 GuiBookmarks。
+- 单个33ms点击可能在下一帧前过期。包接收时立即执行第一子步骤，后续子步骤再按渲染事件计时。
+- 监看进程重启时恢复已完成决策编号，不覆盖旧截图与输出；后续每个动作还记录实际客户端确认和执行后状态。
+- 首批模型输出存在物品误识别，例如将任务书说成斧头；提示加入实际起始物品和由本机GTNH任务配置提取的数量要求。这是上下文适配，并没有通过训练消除误识别。
