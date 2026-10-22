@@ -32,8 +32,11 @@ public class GameScalingBridge {
     private long actionEpoch=-1,miningEpoch=-1,miningStarted=0,miningDeadline=0;
     private String miningStop="",telemetryError="";
     private int renderedFrames=0;
+    private int capturedFrames=0;
+    private final int captureInterval=1000/Math.max(1,Math.min(30,Integer.getInteger("gamescaling.preview.fps",10)));
     private long fpsSince=System.currentTimeMillis();
     private double renderFps=0;
+    private double captureFps=0;
     private void report(Throwable ex){
         while(ex instanceof InvocationTargetException&&ex.getCause()!=null)ex=ex.getCause();
         String msg=ex.toString();if(!msg.equals(error))ex.printStackTrace();error=msg;
@@ -152,6 +155,8 @@ public class GameScalingBridge {
                 state.addProperty("mining_active",miningTarget!=null);state.addProperty("mining_stop",miningStop);
                 if(miningTarget!=null){state.add("mining_target",miningTarget);state.addProperty("mining_elapsed_ms",now-miningStarted);}
                 state.addProperty("render_fps",Math.round(renderFps*10)/10.0);
+                state.addProperty("capture_fps",Math.round(captureFps*10)/10.0);
+                state.addProperty("frame_timestamp",lastFrame);
                 try{
                     Object options=get(mc,"field_71474_y","gameSettings");
                     state.addProperty("render_distance",((Number)get(options,"field_151451_c","renderDistanceChunks")).intValue());
@@ -326,7 +331,7 @@ public class GameScalingBridge {
         try{
             long now=System.currentTimeMillis();
             renderedFrames++;
-            if(now-fpsSince>=1000){renderFps=renderedFrames*1000.0/(now-fpsSince);renderedFrames=0;fpsSince=now;}
+            if(now-fpsSince>=1000){renderFps=renderedFrames*1000.0/(now-fpsSince);captureFps=capturedFrames*1000.0/(now-fpsSince);renderedFrames=0;capturedFrames=0;fpsSince=now;}
             if(action!=null){
                 long elapsed=now-started;int step=(int)(elapsed/33.333333);
                 if(step>=6){
@@ -341,7 +346,7 @@ public class GameScalingBridge {
                     apply(next);
                 }
             }
-            if(now-lastFrame>1000){
+            if(now-lastFrame>=captureInterval){
                 lastFrame=now;int w=((Number)get(mc,"field_71443_c","displayWidth")).intValue(),h=((Number)get(mc,"field_71440_d","displayHeight")).intValue();
                 if(w<=0||h<=0||w*h>4000000)return;
                 ByteBuffer pixels=ByteBuffer.allocateDirect(w*h*4);
@@ -354,6 +359,7 @@ public class GameScalingBridge {
                     g.drawLine(cursorX-5,cursorY,cursorX+5,cursorY);g.drawLine(cursorX,cursorY-5,cursorX,cursorY+5);g.dispose();
                 }
                 Path tmp=root.resolve("frame.tmp.jpg");ImageIO.write(image,"jpg",tmp.toFile());Files.move(tmp,root.resolve("frame.jpg"),StandardCopyOption.REPLACE_EXISTING,StandardCopyOption.ATOMIC_MOVE);
+                capturedFrames++;
             }
         }catch(Throwable ex){try{finishMining("render error",true);apply(new HashSet<Integer>());action=null;}catch(Exception ignored){}report(ex);}
     }

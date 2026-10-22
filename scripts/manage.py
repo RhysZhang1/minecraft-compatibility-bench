@@ -54,6 +54,10 @@ def start(name,profile='balanced'):
     if len(pids)>1:raise RuntimeError(f'{name} 有多个本项目进程，请先运行 stop.sh 完整停止')
     if pids:
         (ROOT/f'runtime/{name}.pid').write_text(str(pids[0]));return False
+    if name=='client':
+        # A just-stopped client's fresh snapshot must not make its replacement
+        # appear connected before Forge has finished loading.
+        (ROOT/'runtime/bridge/state.json').unlink(missing_ok=True)
     cwd=ROOT
     args={
       'server':[JAVA,'-Xms'+game['server']['min_heap'],'-Xmx'+game['server']['max_heap'],'-Dfml.readTimeout=600','@java9args.txt','-jar','lwjgl3ify-forgePatches.jar','nogui'],

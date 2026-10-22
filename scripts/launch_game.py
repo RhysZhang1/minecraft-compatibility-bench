@@ -99,6 +99,7 @@ def main():
            '-Dfml.ignoreInvalidMinecraftCertificates=true','-Dfml.ignorePatchDiscrepancies=true',
            '-Dminecraft.client.jar='+str(CLIENT/'GT New Horizons 2.8.4.jar'),
            '-Dgamescaling.bridge='+str(ROOT/'runtime/bridge'),
+           '-Dgamescaling.preview.fps='+str(resources.get('preview_fps',10)),
            '-Dorg.lwjgl.glfw.libname=glfw', *jvm,
            'com.gtnewhorizons.retrofuturabootstrap.Main', *game,'--width','854','--height','480']
     (ROOT/'runtime/client-launch.json').write_text(json.dumps(cmd,indent=2))

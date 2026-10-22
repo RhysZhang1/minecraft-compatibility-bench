@@ -1,11 +1,23 @@
 from pathlib import Path
-import sys,unittest
+import sys,unittest,tempfile
+from types import SimpleNamespace
 from unittest.mock import patch
 sys.path.insert(0,str(Path(__file__).resolve().parents[1]/'scripts'))
 import manage
 import lifecycle
 
 class OwnershipTests(unittest.TestCase):
+    def test_replacement_client_cannot_reuse_old_connected_snapshot(self):
+        with tempfile.TemporaryDirectory() as folder:
+            root=Path(folder);(root/'runtime/bridge').mkdir(parents=True);(root/'logs').mkdir()
+            old=root/'runtime/bridge/state.json';old.write_text('{"connected":true}')
+            def spawn(*args,**kwargs):
+                self.assertFalse(old.exists(),'stale state must disappear before new process starts')
+                return SimpleNamespace(pid=123)
+            with patch.object(manage,'ROOT',root),patch.object(manage,'owned_pids',return_value=[]),patch.object(manage.subprocess,'Popen',side_effect=spawn):
+                self.assertTrue(manage.start('client'))
+            self.assertEqual((root/'runtime/client.pid').read_text(),'123')
+
     def test_exact_client_identity(self):
         root=manage.ROOT
         flag='-Dgamescaling.bridge='+str(root/'runtime/bridge')

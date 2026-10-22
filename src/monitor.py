@@ -287,15 +287,22 @@ def status():
 
 class Handler(BaseHTTPRequestHandler):
     def do_GET(self):
+        frame_time=None
         path=urlparse(self.path).path
         if path=='/api/status': data=json.dumps(status(),ensure_ascii=False).encode();mime='application/json'
         elif path=='/api/memory':data=json.dumps(MEMORY.view(STATE['goal']),ensure_ascii=False).encode();mime='application/json'
         elif path=='/frame.jpg':
-            try:data=(BRIDGE/'frame.jpg').read_bytes();mime='image/jpeg'
+            try:
+                with (BRIDGE/'frame.jpg').open('rb') as f:data=f.read();frame_time=os.fstat(f.fileno()).st_mtime_ns//1000000
+                mime='image/jpeg'
             except OSError:self.send_error(404);return
         elif path=='/':data=(ROOT/'ui/index.html').read_bytes();mime='text/html; charset=utf-8'
         else:self.send_error(404);return
-        self.send_response(200);self.send_header('Content-Type',mime);self.send_header('Cache-Control','no-store');self.end_headers();self.wfile.write(data)
+        self.send_response(200);self.send_header('Content-Type',mime);self.send_header('Cache-Control','no-store')
+        if frame_time is not None:self.send_header('X-Frame-Time',str(frame_time))
+        self.end_headers()
+        try:self.wfile.write(data)
+        except (BrokenPipeError,ConnectionResetError):pass
     def do_POST(self):
         global CONTROL_EPOCH
         origin=self.headers.get('Origin')
