@@ -1,0 +1,84 @@
+"""Minecraft RCON, restricted to this workspace's loopback test server."""
+from pathlib import Path
+import json, re, secrets, socket, struct, threading
+
+ROOT=Path(__file__).resolve().parents[1]
+PROPERTIES=ROOT/'instances/server/server.properties'
+CONSOLE_LOCK=threading.RLock()
+
+def properties():
+    return dict(line.split('=',1) for line in PROPERTIES.read_text().splitlines()
+                if line and not line.startswith(('#','!')) and '=' in line)
+
+def defaults():
+    return json.loads((ROOT/'server-settings.json').read_text())
+
+def configure():
+    """Called before server start; the random credential stays in the private instance."""
+    with CONSOLE_LOCK:
+        current=properties()
+        changes={**defaults()['properties'],'server-ip':'127.0.0.1','enable-rcon':'true',
+                 'rcon.port':'25575','rcon.password':current.get('rcon.password') or secrets.token_hex(32)}
+        lines=PROPERTIES.read_text().splitlines()
+        lines=[line for line in lines if line.split('=',1)[0] not in changes]
+        PROPERTIES.write_text('\n'.join(lines+[k+'='+v for k,v in changes.items()])+'\n')
+
+def validate(command):
+    if not isinstance(command,str):raise ValueError('请输入一条 Minecraft 服务器命令')
+    command=command.strip().removeprefix('/')
+    if not command or len(command.encode('utf-8'))>2048 or any(ord(c)<32 or ord(c)==127 for c in command):
+        raise ValueError('请输入单行命令，最多2048字节')
+    return command
+
+def packet(ident,kind,body):
+    data=struct.pack('<ii',ident,kind)+body+b'\0\0'
+    return struct.pack('<i',len(data))+data
+
+def exact(sock,size):
+    data=bytearray()
+    while len(data)<size:
+        chunk=sock.recv(size-len(data))
+        if not chunk:raise ConnectionError('服务器已关闭命令连接')
+        data.extend(chunk)
+    return bytes(data)
+
+def receive(sock):
+    size=struct.unpack('<i',exact(sock,4))[0]
+    if not 10<=size<=4*1024*1024:raise ConnectionError('服务器返回的命令数据长度无效')
+    data=exact(sock,size)
+    if data[-2:]!=b'\0\0':raise ConnectionError('服务器返回的命令数据不完整')
+    ident,kind=struct.unpack('<ii',data[:8])
+    return ident,kind,data[8:-2]
+
+def execute(command):
+    command=validate(command)
+    with CONSOLE_LOCK:
+        p=properties()
+        if p.get('enable-rcon')!='true' or not p.get('rcon.password'):
+            raise ConnectionError('服务器命令服务尚未配置，请重启测试服务器')
+        with socket.create_connection(('127.0.0.1',int(p.get('rcon.port','25575'))),timeout=8) as sock:
+            sock.sendall(packet(1,3,p['rcon.password'].encode()))
+            ident,kind,_=receive(sock)
+            if ident!=1 or kind!=2:raise ConnectionError('服务器命令身份验证失败')
+            # A separate response-value probe delimits multi-packet command output.
+            # 1.7.10 rejects coalesced request packets: wait for the first reply
+            # before sending the delimiter, rather than pipelining both writes.
+            sock.sendall(packet(2,2,command.encode('utf-8')))
+            output=bytearray()
+            probed=False
+            while True:
+                ident,kind,body=receive(sock)
+                if ident==3:break
+                if ident!=2 or kind!=0:raise ConnectionError('服务器命令响应编号不匹配')
+                output.extend(body)
+                if len(output)>1024*1024:raise ConnectionError('命令输出超过1MiB，请缩小查询范围')
+                if not probed:
+                    sock.sendall(packet(3,0,b''));probed=True
+            return re.sub(r'§[0-9a-fk-or]','',output.decode('utf-8',errors='replace'),flags=re.I)
+
+def apply_defaults():
+    with CONSOLE_LOCK:
+        results=[{'command':c,'output':execute(c)} for c in defaults()['commands']]
+        results.append({'command':'gamerule keepInventory','output':execute('gamerule keepInventory')})
+        results.append({'command':'save-all','output':execute('save-all')})
+        return results

@@ -28,6 +28,10 @@
 11. 隐藏窗口后实测 GLFW `VISIBLE=false`、`FOCUSED=false`、光标模式为普通模式；30 FPS 渲染和截图继续更新。GPU 上下文仍保留。
 12. 客户端内回放5种硬件输入回调（移动、按钮、滚轮、键盘、字符），均被隔离；鼠标坐标、事件队列和实际视角未被改变。独立虚拟W/左键的按下、释放及点击事件轮询通过。这是回调入口验证，没有声称做过人工实体键鼠测试。
 13. 隐藏且无焦点时，200ms虚拟W动作实际水平移动0.534格，虚拟鼠标改变偏航；E打开GuiInventory，Esc关闭，包结束后释放输入。证据为私有 `runtime/input-isolation-validation.json`，可用 `scripts/verify_input.py` 重跑。
+14. 观察台“在线玩家”按钮实际返回GameScalingBot；手动输入`/gamerule keepInventory`返回`keepInventory = true`；白天、晴天快捷按钮均收到真实回显。命令窗口不等待模型推理。
+15. 测试服务器实际返回`Set game difficulty to Peaceful`；开启keepInventory后save-all，读取压缩NBT存档确认该规则已保存为true。服务器重启由启动属性与观察服务恢复默认规则。
+16. 手动命令暂停自动操作后，第69轮在途推理完成但没有执行，其证据记录`executed=false`及场景已变更的丢弃原因。HTTP多行输入返回400，外部来源返回403。
+17. 共7项测试通过，包括原3项动作协议测试及新增4项命令协议测试。证据为私有`runtime/server-console-validation.json`与命令日志。
 
 ## 实际观察到的限制
 

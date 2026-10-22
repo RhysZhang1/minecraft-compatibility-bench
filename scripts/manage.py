@@ -1,7 +1,9 @@
 """Only manage child processes belonging to this workspace."""
 from pathlib import Path
-import argparse, json, os, signal, subprocess, time
+import argparse, json, os, signal, subprocess, time, sys
 ROOT=Path(__file__).resolve().parents[1]
+sys.path.insert(0,str(ROOT/'src'))
+from server_console import configure
 JAVA=os.environ.get('MINECRAFT_JAVA_BIN','/home/rhys/.local/share/hmcl/java/linux-x86_64/mojang-java-runtime-epsilon/bin/java')
 
 def owned(name):
@@ -23,6 +25,7 @@ def start(name,profile='balanced'):
       'monitor':[str(ROOT/'.venv/bin/python'),str(ROOT/'src/monitor.py')]}[name]
     stdin=subprocess.DEVNULL
     if name=='server':
+        configure()
         cwd=ROOT/'instances/server'
         fifo=ROOT/'runtime/server.stdin'
         if not fifo.exists():os.mkfifo(fifo,0o600)

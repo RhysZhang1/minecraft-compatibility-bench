@@ -43,6 +43,10 @@ MODEL_GPU_LAYERS=8 MODEL_VISION_GPU=1 .venv/bin/python scripts/manage.py restart
 
 客户端默认隐藏窗口，保持独立的游戏内虚拟焦点和输入；真实键鼠不会进入该测试角色。查看画面和暂停/恢复自动操作均使用 8790 观察台。隐藏窗口仍依赖当前桌面会话和 GPU 上下文，不是完全脱离图形会话的服务。
 
+观察台游戏画面下方提供“服务器命令窗口”，直接执行 Minecraft 命令并显示真实服务器回显，支持带或不带开头 `/`。例如 `gamerule keepInventory`、`tp GameScalingBot 0 100 0`；快捷按钮可设为白天、晴天、和平、死亡不掉落或查询在线玩家。默认勾选“执行时暂停自动操作”，执行后在顶部恢复；命令会使之前正在推理的动作失效，下一轮重新观察当前画面。命令记录保存在私有 `logs/server-commands.jsonl`。
+
+`server-settings.json` 保存可复现的启动默认：和平难度、非极限模式、死亡不掉落。生命周期脚本在启动前配置服务器属性，观察服务在服务器就绪后应用游戏规则并保存世界。命令通道为本机 `127.0.0.1:25575` RCON；随机凭证仅保存在私有测试副本的 `server.properties`，不会发送给观察台页面或进入源码包。
+
 `scripts/build_bridge.py` 同时编译输入隔离 agent。该 agent 针对当前整合包的 lwjgl3ify 2.1.16；输入方法不匹配时终止专用测试客户端，避免悄悄退回真实输入。`scripts/verify_input.py` 可对运行中的测试副本执行回调隔离、虚拟移动和背包交互验收，会暂停自动操作，完成后通过观察台恢复。
 
 ## 文件与适配范围
@@ -52,6 +56,8 @@ MODEL_GPU_LAYERS=8 MODEL_VISION_GPU=1 .venv/bin/python scripts/manage.py restart
 | `bridge/src/` | 客户端 Forge 桥接源码 |
 | `input/src/` | 隐藏窗口与虚拟输入隔离 agent 源码 |
 | `src/monitor.py` | 观察台与截图→模型→动作闭环 |
+| `src/server_console.py` | 本机 Minecraft 命令通道与回显 |
+| `server-settings.json` | 服务器默认难度与游戏规则 |
 | `scripts/` | 下载、编译、启动和备份 |
 | `docs/ISSUES.md` | 实际问题与解决记录 |
 | `models-manifest.json` | 上游仓库与固定版本 |

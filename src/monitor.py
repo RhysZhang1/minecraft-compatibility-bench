@@ -10,6 +10,7 @@ ROOT=Path(__file__).resolve().parents[1]
 sys.path.insert(0,str(ROOT/'vendor/GameScaling'))
 from gamescaling.action import parse_action,split_reasoning,ACTION_END,NOOP_ACTION_TEXT
 from gamescaling.prompt import build_system_prompt
+import server_console
 
 BRIDGE=ROOT/'runtime/bridge'
 ENGINE='http://127.0.0.1:8789'
@@ -19,6 +20,9 @@ STATE={'phase':'等待客户端和模型就绪','enabled':True,'step':0,'raw':''
 LOCK=threading.RLock()
 HISTORY=collections.deque(maxlen=5)
 ABORT=threading.Event()
+CONTROL_EPOCH=0
+COMMAND_LOCK=threading.Lock()
+CONSOLE={'ready':False,'settings_applied':False,'message':'等待服务器命令服务','history':[]}
 OPENER=__import__('urllib.request',fromlist=['build_opener']).build_opener(__import__('urllib.request',fromlist=['ProxyHandler']).ProxyHandler({}))
 
 def readjson(path,default=None):
@@ -70,7 +74,8 @@ def make_prompt(frame,marker=None):
     # Same ChatML and empty historical <think> spans as the official checkpoint.
     prompt='<|im_start|>system\n'+system_prompt()+'<|im_end|>\n'
     images=[]
-    for old,action in HISTORY:
+    with LOCK:history=tuple(HISTORY)
+    for old,action in history:
         prompt+='<|im_start|>user\ncurrent game screen'+marker+'<|im_end|>\n'
         prompt+='<|im_start|>assistant\n<think>\n\n</think>\n\n'+action+'<|im_end|>\n'
         images.append(old)
@@ -82,7 +87,7 @@ def loop():
     command_id=int(time.time()*1000)
     while not ABORT.wait(1):
         try:
-            with LOCK:enabled=STATE['enabled']
+            with LOCK:enabled=STATE['enabled'];epoch=CONTROL_EPOCH
             if not enabled:
                 STATE['phase']='已暂停；所有动作会在200毫秒内释放';continue
             game=readjson(BRIDGE/'state.json')
@@ -128,12 +133,17 @@ def loop():
             record={'timestamp':time.time(),'step':STATE['step'],'raw':raw,'reasoning':reasoning,'action':a.history_text,
                     'parsed':a.parsed,'latency':elapsed,'game_before':game,'timings':finish.get('timings',{})}
             record['executed']=False
+            if epoch!=CONTROL_EPOCH:record['discard_reason']='服务器命令已改变场景，丢弃此前推理的动作'
             atomic(evidence/(stamp+'.json'),record)
-            HISTORY.append((frame,a.history_text))
+            with LOCK:
+                if epoch==CONTROL_EPOCH:HISTORY.append((frame,a.history_text))
             # Only an actual completed, valid packet may move the game.
-            if a.parsed and STATE['enabled']:
-                command_id=max(command_id+1,int(time.time()*1000),readjson(BRIDGE/'state.json').get('command_id',0)+1)
-                atomic(BRIDGE/'command.json',{'id':command_id,'mouse':a.mouse,'steps':a.steps})
+            with LOCK:
+                execute_action=a.parsed and STATE['enabled'] and epoch==CONTROL_EPOCH
+                if execute_action:
+                    command_id=max(command_id+1,int(time.time()*1000),readjson(BRIDGE/'state.json').get('command_id',0)+1)
+                    atomic(BRIDGE/'command.json',{'id':command_id,'mouse':a.mouse,'steps':a.steps})
+            if execute_action:
                 STATE['phase']='客户端执行200毫秒动作'
                 deadline=time.monotonic()+10
                 while time.monotonic()<deadline:
@@ -158,6 +168,45 @@ def memory():
     except Exception:return {}
 
 GPU={}
+def command_event(command,output,error=False):
+    record={'time':time.time(),'command':command,'output':output,'error':error}
+    with LOCK:CONSOLE['history']=(CONSOLE['history']+[record])[-30:]
+    with (ROOT/'logs/server-commands.jsonl').open('a') as f:
+        f.write(json.dumps(record,ensure_ascii=False)+'\n')
+    return record
+
+def run_command(command,pause=True):
+    global CONTROL_EPOCH
+    command=server_console.validate(command)
+    with COMMAND_LOCK:
+        with LOCK:
+            if pause:STATE['enabled']=False
+            CONTROL_EPOCH+=1;HISTORY.clear()
+            atomic(ROOT/'runtime/control.json',{'enabled':STATE['enabled'],'goal':STATE['goal']})
+        # Finish the current bounded action before applying a manual world change.
+        deadline=time.monotonic()+2
+        while readjson(BRIDGE/'state.json').get('busy') and time.monotonic()<deadline:time.sleep(.05)
+        try:
+            output=server_console.execute(command)
+            return command_event(command,output or '（服务器未返回文字）')
+        except (OSError,ValueError,ConnectionError) as exc:
+            command_event(command,str(exc),True);raise
+
+def server_settings_loop():
+    applied_pid=None
+    while not ABORT.wait(3):
+        try:
+            pid=(ROOT/'runtime/server.pid').read_text().strip()
+            if pid==applied_pid:continue
+            with COMMAND_LOCK:
+                results=server_console.apply_defaults()
+                for r in results:command_event(r['command'],r['output'])
+            CONSOLE.update(ready=True,settings_applied=True,message='测试设置已应用：和平 · 死亡不掉落')
+            atomic(ROOT/'runtime/server-settings-applied.json',{'time':time.time(),'pid':pid,'results':results})
+            applied_pid=pid
+        except (OSError,ValueError,ConnectionError) as exc:
+            CONSOLE.update(ready=False,settings_applied=False,message='等待服务器命令服务：'+str(exc))
+
 def telemetry():
     while not ABORT.wait(5):
         try:
@@ -172,6 +221,7 @@ def status():
     if time.time()-result['game'].get('timestamp',0)/1000>10:
         result['game']['connected']=False
     result['memory']=memory();result['gpu']=dict(GPU)
+    with LOCK:result['console']=dict(CONSOLE)
     result['processes']={}
     for name in ['server','client','model']:
         try:
@@ -196,16 +246,40 @@ class Handler(BaseHTTPRequestHandler):
         origin=self.headers.get('Origin')
         if origin and origin not in ['http://127.0.0.1:8790','http://localhost:8790']:
             self.send_error(403);return
-        if self.path!='/api/control':self.send_error(404);return
-        body=json.loads(self.rfile.read(min(int(self.headers.get('Content-Length',0)),8192)))
+        if self.headers.get('Host') not in ['127.0.0.1:8790','localhost:8790']:
+            self.send_error(403);return
+        if self.headers.get_content_type()!='application/json':self.send_error(415);return
+        if self.path not in ['/api/control','/api/server/command']:self.send_error(404);return
+        try:
+            size=int(self.headers.get('Content-Length',0))
+            if not 0<size<=8192:raise ValueError('请求长度无效')
+            body=json.loads(self.rfile.read(size))
+            if not isinstance(body,dict):raise ValueError('请求格式无效')
+        except (ValueError,UnicodeError):self.json_response(400,{'error':'请求格式无效'});return
+        if self.path=='/api/server/command':
+            try:self.json_response(200,{'ok':True,'result':run_command(body.get('command'),body.get('pause_model',True))})
+            except ValueError as exc:self.json_response(400,{'ok':False,'error':str(exc)})
+            except (OSError,ConnectionError) as exc:self.json_response(503,{'ok':False,'error':str(exc)})
+            return
         with LOCK:
             if 'enabled' in body:STATE['enabled']=bool(body['enabled'])
             if 'goal' in body:STATE['goal']=str(body['goal'])[:1000];HISTORY.clear()
-        self.send_response(200);self.send_header('Content-Type','application/json');self.end_headers();self.wfile.write(b'{"ok":true}')
+            atomic(ROOT/'runtime/control.json',{'enabled':STATE['enabled'],'goal':STATE['goal']})
+        self.json_response(200,{'ok':True})
+    def json_response(self,code,value):
+        data=json.dumps(value,ensure_ascii=False).encode()
+        self.send_response(code);self.send_header('Content-Type','application/json; charset=utf-8')
+        self.send_header('Cache-Control','no-store');self.end_headers();self.wfile.write(data)
     def log_message(self,*args):pass
 
 def main():
     BRIDGE.mkdir(parents=True,exist_ok=True);(ROOT/'logs').mkdir(exist_ok=True)
+    saved=readjson(ROOT/'runtime/control.json')
+    STATE.update({key:saved[key] for key in ['enabled','goal'] if key in saved})
+    try:
+        records=[json.loads(line) for line in (ROOT/'logs/server-commands.jsonl').read_text().splitlines()[-30:]]
+        CONSOLE['history']=records
+    except (OSError,ValueError):pass
     records=[readjson(p) for p in sorted((ROOT/'runtime/episodes').glob('*.json'))]
     if records:
         last=records[-1]
@@ -213,6 +287,7 @@ def main():
             raw=last.get('raw',''),thinking=last.get('reasoning',''),last_action=last.get('action',''),latency=last.get('latency',0))
         STATE['history']=[dict(time=r.get('timestamp',time.time()),kind='decision',**r) for r in records[-10:]]
     threading.Thread(target=loop,daemon=True).start();threading.Thread(target=telemetry,daemon=True).start()
+    threading.Thread(target=server_settings_loop,daemon=True).start()
     print('GTNH monitor: http://127.0.0.1:8790',flush=True)
     ThreadingHTTPServer(('127.0.0.1',8790),Handler).serve_forever()
 

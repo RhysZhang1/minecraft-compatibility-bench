@@ -1,7 +1,9 @@
 """Copy user-provided installations into private, reproducible test instances."""
 from pathlib import Path
-import json,os,shutil
+import json,os,shutil,sys
 ROOT=Path(__file__).resolve().parents[1]
+sys.path.insert(0,str(ROOT/'src'))
+from server_console import configure
 
 def main():
     sources={'server':Path(os.environ.get('GTNH_SERVER_SOURCE','/home/rhys/Desktop/GTNH')),
@@ -15,6 +17,7 @@ def main():
     for k,v in changes.items():
         lines=[x for x in lines if not x.startswith(k+'=')];lines.append(k+'='+v)
     p.write_text('\n'.join(lines)+'\n')
+    configure()
     p=ROOT/'instances/client/options.txt'
     p.write_text('lang:en_US\noverrideWidth:854\noverrideHeight:480\nrenderDistance:4\nmaxFps:30\nfancyGraphics:false\nenableVsync:false\npauseOnLostFocus:false\nshowInventoryAchievementHint:false\nmusic:0.0\nsound:0.3\n')
     for d in ['runtime','logs','models']:(ROOT/d).mkdir(exist_ok=True)

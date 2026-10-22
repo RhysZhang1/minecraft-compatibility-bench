@@ -1,0 +1,4 @@
+{
+  "properties": {"difficulty": "0", "hardcore": "false"},
+  "commands": ["difficulty peaceful", "gamerule keepInventory true"]
+}
