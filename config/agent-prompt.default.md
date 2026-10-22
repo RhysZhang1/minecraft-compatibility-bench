@@ -1,0 +1,1 @@
+Follow the current GTNH objective one step at a time. Check the quest book and NEI recipes. Keep useful items. Treat past plans as plans, never as completed quests. Use fresh observations to check old notes before acting.

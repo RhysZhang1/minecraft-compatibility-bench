@@ -140,6 +140,10 @@ def wait_ready(label,check,roles,timeout):
 
 def shutdown(force=False,only=None):
     errors=[];save_control(False)
+    if manage.owned('monitor') and (only is None or 'monitor' in only):
+        try:
+            http(URL+'/api/memory/checkpoint',{},timeout=8);say('续玩笔记已保存。')
+        except (OSError,ValueError):say('未取得最新记忆确认，保留最近自动保存的续玩笔记。')
     for name in ['monitor','client','server','model']:
         if only is not None and name not in only:continue
         if manage.owned(name):say('停止'+LABELS[name]+('并保存世界…' if name=='server' else '…'))

@@ -12,3 +12,4 @@ input/build/
 input/*.jar
 research/
 backups/
+memory/

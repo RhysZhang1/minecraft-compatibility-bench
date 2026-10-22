@@ -47,6 +47,15 @@
 - 私有证据：runtime/2b-gpu-placement.log、2b-replay-benchmark.json、2b-live-validation.json及新决策记录。源码记录包括models-2b-manifest.json和models-2b-checksums.json。
 - 最终关闭8GiB旧提示主存缓存、限制2份上下文检查点后，45秒新增17轮决策，模型进程RSS峰值1060MiB、系统可用内存最低15.99GiB。相同三组回放中位1.274秒，GPU活动缓存保留。证据为runtime/2b-cache-limit-validation.json；不能外推数小时稳定性。
 
+## 提示词与续玩记忆验证补充
+
+- 观察台编辑个人笔记并保存，界面确认成功；重启后重新加载，固定提示词、个人笔记、目标和上次模型建议保持一致。
+- 22:22执行根目录stop.sh，确认续玩笔记保存、四服务全部退出及四端口释放。随后从全停执行start.sh --model 2b --no-open --paused，约78秒就绪；同一角色GameScalingBot重新连接，任务书物品、槽位及数量与停止前一致。证据为私有runtime/memory-persistence-validation.json。
+- 恢复后抽取25轮有客户端完成确认的实际操作（1127–1152范围内），全部解析成功，推理中位1.297秒。每轮实际注入的agent_memory.context包含保存的个人笔记，SHA256校验一致；保存设置导致的在途旧动作被正常丢弃，不列入完成操作计数。
+- 临时设置每10轮整理，从summary_step1126开始，1136轮后自动产生有效JSON建议，原文证据executed=false，后续游戏继续。随后通过界面恢复默认50轮。私有runtime/memory-live-validation.json记录输入、动作确认和独立总结原文。
+- 客户端新增玩家身份、维度与背包槽位接口，实测取得questbook:ItemQuestBook ×1。程序维护坐标、生命、物品和近期区块；模型只能选择受限的下一步建议及待确认项目，不能填写虚构任务完成状态。没有宣称模型能可靠自由写作或严格遵守全部笔记。
+- 23项单元测试通过，包括8项新增记忆测试，覆盖重读、未知物品不视为空、数量变化、模型不能改写事实、控制标记隔离、独立总结、编辑冲突及失败重试节流。浏览器实际显示保存成功、重启恢复和新的整理时间。
+
 ## 实际观察到的限制
 
 - S1会误识别GTNH画面。例如一轮将任务书描述为斧头/镐，未在画面中得到充分支持。

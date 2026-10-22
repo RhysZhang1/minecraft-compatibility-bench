@@ -4,9 +4,12 @@ from pathlib import Path
 ROOT=Path(__file__).resolve().parents[1];sys.path.insert(0,str(ROOT/'src'))
 import monitor
 from jinja2 import Environment
+from unittest.mock import patch
 
 class ProtocolTests(unittest.TestCase):
-    def tearDown(self):monitor.HISTORY.clear()
+    def setUp(self):
+        self.memory_patch=patch.object(monitor.MEMORY,'prompt_context',return_value='persistent notes fixture');self.memory_patch.start()
+    def tearDown(self):monitor.HISTORY.clear();self.memory_patch.stop()
 
     def test_prompt_matches_official_template(self):
         path=ROOT/'models/GameScaling-9B-S1-GGUF/chat_template.jinja'

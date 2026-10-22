@@ -139,6 +139,10 @@ public class GameScalingBridge {
                     for(String[] pair:new String[][]{{"x","field_70165_t"},{"y","field_70163_u"},{"z","field_70161_v"},{"yaw","field_70177_z"},{"pitch","field_70125_A"}})
                         state.addProperty(pair[0],(Number)get(player,pair[1]));
                     state.addProperty("health",(Number)method(player.getClass(),new String[]{"func_110143_aJ","getHealth"}).invoke(player));
+                    state.addProperty("player",String.valueOf(method(player.getClass(),new String[]{"func_70005_c_","getCommandSenderName"}).invoke(player)));
+                    state.addProperty("dimension",((Number)get(player,"field_71093_bK","dimension")).intValue());
+                    try{state.add("inventory",inventorySnapshot(player));}
+                    catch(Throwable inventoryError){state.addProperty("inventory_error",inventoryError.toString());}
                 }
                 json("state.json",state);
             }
@@ -152,6 +156,22 @@ public class GameScalingBridge {
         String[] names={"zero","one","two","three","four","five","six","seven","eight","nine","Space","Shift","Ctrl","Alt","Tab","Esc","Enter","Back","Up","Down","Left","Right","LB","RB","MB"};
         int[] codes={11,2,3,4,5,6,7,8,9,10,57,42,29,56,15,1,28,14,200,208,203,205,-100,-99,-98};
         for(int i=0;i<names.length;i++)if(names[i].equals(k))return codes[i];return 0;
+    }
+    private JsonArray inventorySnapshot(Object player)throws Exception{
+        Object inventory=get(player,"field_71071_by","inventory");
+        int size=((Number)method(inventory.getClass(),new String[]{"func_70302_i_","getSizeInventory"}).invoke(inventory)).intValue();
+        Method slot=method(inventory.getClass(),new String[]{"func_70301_a","getStackInSlot"},int.class);
+        Object registry=field(cls("net.minecraft.item.Item"),"field_150901_e","itemRegistry").get(null);
+        JsonArray result=new JsonArray();
+        for(int i=0;i<Math.min(size,200);i++){
+            Object stack=slot.invoke(inventory,i);if(stack==null)continue;
+            int count=((Number)get(stack,"field_77994_a","stackSize")).intValue();if(count<=0)continue;
+            Object item=method(stack.getClass(),new String[]{"func_77973_b","getItem"}).invoke(stack);
+            String id=String.valueOf(method(registry.getClass(),new String[]{"func_148750_c","getNameForObject"},Object.class).invoke(registry,item));
+            String name=id;try{name=String.valueOf(method(stack.getClass(),new String[]{"func_82833_r","getDisplayName"}).invoke(stack));}catch(Exception ignored){}
+            JsonObject entry=new JsonObject();entry.addProperty("slot",i);entry.addProperty("item",id);entry.addProperty("name",name);entry.addProperty("count",count);result.add(entry);
+        }
+        return result;
     }
     private void apply(Set<Integer> next)throws Exception{
         VirtualInput.setKeys(next);

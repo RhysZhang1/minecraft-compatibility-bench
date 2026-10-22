@@ -1,6 +1,6 @@
 """Local-only dashboard and supervised pixel-to-action loop."""
 from __future__ import annotations
-import base64, collections, io, json, os, subprocess, sys, threading, time, traceback
+import base64, collections, hashlib, io, json, os, subprocess, sys, threading, time, traceback
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.request import Request, urlopen
@@ -12,6 +12,7 @@ from gamescaling.action import parse_action,split_reasoning,ACTION_END,NOOP_ACTI
 from gamescaling.prompt import build_system_prompt
 import server_console
 import model_config
+from agent_memory import AgentMemory,replace as replace_memory
 
 BRIDGE=ROOT/'runtime/bridge'
 ENGINE='http://127.0.0.1:8789'
@@ -25,6 +26,7 @@ CONTROL_EPOCH=0
 COMMAND_LOCK=threading.Lock()
 CONSOLE={'ready':False,'settings_applied':False,'message':'等待服务器命令服务','history':[]}
 OPENER=__import__('urllib.request',fromlist=['build_opener']).build_opener(__import__('urllib.request',fromlist=['ProxyHandler']).ProxyHandler({}))
+MEMORY=AgentMemory(ROOT)
 
 def readjson(path,default=None):
     try:return json.loads(Path(path).read_text())
@@ -44,7 +46,8 @@ def event(kind,**values):
         STATE['history']=(STATE['history']+[record])[-30:]
     with (ROOT/'logs/events.jsonl').open('a') as f:f.write(json.dumps(record,ensure_ascii=False)+'\n')
 
-def system_prompt():
+def system_prompt(memory_context=None):
+    if memory_context is None:memory_context=MEMORY.prompt_context()
     context=readjson(ROOT/'runtime/gtnh-context.json')
     quest_hint=''
     for quest in context.get('quests',[]):
@@ -61,19 +64,19 @@ def system_prompt():
       'Avoid destroying player buildings. Do not type chat commands. Keep the camera near the horizon when travelling. '
       'The game runs while you infer, but every action packet is executed only for 200ms, then ALL keys are released. '
       'Only act on the current screenshot. Close a blocking overlay with Esc when necessary. '
-      'Current objective: '+STATE['goal']),key_bindings=[
+      'Current objective: '+STATE['goal']+'\n'+memory_context),key_bindings=[
         ('W','Move forward'),('A','Strafe left'),('S','Move backward'),('D','Strafe right'),
         ('Space','Jump'),('Shift','Sneak'),('Ctrl','Sprint'),('LB','Attack / mine'),('RB','Use / place / interact'),
         ('E','Open or close inventory'),('Esc','Close current screen'),('Q','Drop item; avoid unless necessary'),
         *[(n,'Select hotbar slot '+str(i)) for i,n in enumerate(['one','two','three','four','five','six','seven','eight','nine'],1)],
         ('R','Show the recipe under the mouse in inventory'),('U','Show uses in NEI')],mouse_aim=True)
 
-def make_prompt(frame,marker=None):
+def make_prompt(frame,marker=None,memory_context=None):
     if marker is None:
         with request('/props',timeout=5) as response:
             marker=json.load(response)['media_marker']
     # Same ChatML and empty historical <think> spans as the official checkpoint.
-    prompt='<|im_start|>system\n'+system_prompt()+'<|im_end|>\n'
+    prompt='<|im_start|>system\n'+system_prompt(memory_context)+'<|im_end|>\n'
     images=[]
     with LOCK:history=tuple(HISTORY)
     for old,action in history:
@@ -84,10 +87,32 @@ def make_prompt(frame,marker=None):
     images.append(frame)
     return {'prompt_string':prompt,'multimodal_data':images}
 
+def summarize_memory():
+    with LOCK:goal=STATE['goal'];step=STATE['step'];epoch=CONTROL_EPOCH
+    MEMORY.running=True
+    STATE['phase']='正在整理续玩笔记；此请求不执行游戏动作'
+    raw='';error=''
+    try:
+        body=MEMORY.summary_request(goal,readjson(BRIDGE/'state.json'),step)
+        with request('/completion',body,timeout=60) as response:reply=json.load(response)
+        raw=reply.get('content','')
+        if epoch!=CONTROL_EPOCH:raise ValueError('整理期间目标或控制状态已变化，本次草稿未采用')
+        MEMORY.apply_summary(raw,step,readjson(ROOT/'runtime/model-active.json').get('key','unknown'))
+    except Exception as exc:
+        error=str(exc);MEMORY.summary_failed(error,step)
+    finally:
+        replace_memory(ROOT/'memory/summaries'/f'{time.time_ns()}-{step}.json',json.dumps({'time':time.time(),'step':step,'raw':raw,'error':error,'executed':False},ensure_ascii=False,indent=2))
+        MEMORY.running=False
+
 def loop():
     command_id=int(time.time()*1000)
     while not ABORT.wait(1):
         try:
+            game=readjson(BRIDGE/'state.json')
+            if time.monotonic()-MEMORY.last_checkpoint>2:
+                MEMORY.checkpoint(STATE['goal'],game,STATE['step'])
+            if MEMORY.due(STATE['step']) and (MEMORY.pending or STATE['enabled']):
+                summarize_memory()
             with LOCK:enabled=STATE['enabled'];epoch=CONTROL_EPOCH
             if not enabled:
                 STATE['phase']='已暂停；所有动作会在200毫秒内释放';continue
@@ -109,8 +134,9 @@ def loop():
             evidence=ROOT/'runtime/episodes';evidence.mkdir(exist_ok=True)
             (evidence/(stamp+'.jpg')).write_bytes(frame_bytes)
             STATE.update(phase='模型正在观察并生成动作',raw='',thinking='',inference_started=time.time())
+            memory_context=MEMORY.prompt_context()
             t0=time.monotonic();text='';finish={}
-            with request('/completion',{'prompt':make_prompt(frame),'stream':True,'temperature':1.0,
+            with request('/completion',{'prompt':make_prompt(frame,memory_context=memory_context),'stream':True,'temperature':1.0,
                     'top_k':0,'top_p':1.0,'min_p':0.0,'repeat_penalty':1.0,'n_predict':768,
                     'stop':[ACTION_END],'cache_prompt':True,'return_tokens':True},timeout=600) as resp:
                 for line in resp:
@@ -135,6 +161,8 @@ def loop():
                     'parsed':a.parsed,'latency':elapsed,'game_before':game,'timings':finish.get('timings',{})}
             record['executed']=False
             record['model']=readjson(ROOT/'runtime/model-active.json')
+            record['agent_memory']={'revision':MEMORY.config()['revision'],'context':memory_context,
+                                    'sha256':hashlib.sha256(memory_context.encode()).hexdigest()}
             if epoch!=CONTROL_EPOCH:record['discard_reason']='服务器命令已改变场景，丢弃此前推理的动作'
             atomic(evidence/(stamp+'.json'),record)
             with LOCK:
@@ -224,6 +252,8 @@ def status():
         result['game']['connected']=False
     result['memory']=memory();result['gpu']=dict(GPU)
     result['model']=readjson(ROOT/'runtime/model-active.json')
+    mv=MEMORY.view(STATE['goal'])
+    result['agent_memory']={k:mv[k] for k in ['revision','summary_at','summary_step','pending','running','error','updated_at','prompt_chars']}
     with LOCK:result['console']=dict(CONSOLE)
     result['processes']={}
     for name in ['server','client','model']:
@@ -239,6 +269,7 @@ class Handler(BaseHTTPRequestHandler):
     def do_GET(self):
         path=urlparse(self.path).path
         if path=='/api/status': data=json.dumps(status(),ensure_ascii=False).encode();mime='application/json'
+        elif path=='/api/memory':data=json.dumps(MEMORY.view(STATE['goal']),ensure_ascii=False).encode();mime='application/json'
         elif path=='/frame.jpg':
             try:data=(BRIDGE/'frame.jpg').read_bytes();mime='image/jpeg'
             except OSError:self.send_error(404);return
@@ -253,10 +284,10 @@ class Handler(BaseHTTPRequestHandler):
         if self.headers.get('Host') not in ['127.0.0.1:8790','localhost:8790']:
             self.send_error(403);return
         if self.headers.get_content_type()!='application/json':self.send_error(415);return
-        if self.path not in ['/api/control','/api/server/command']:self.send_error(404);return
+        if self.path not in ['/api/control','/api/server/command','/api/memory/save','/api/memory/summarize','/api/memory/checkpoint']:self.send_error(404);return
         try:
             size=int(self.headers.get('Content-Length',0))
-            if not 0<size<=8192:raise ValueError('请求长度无效')
+            if not 0<size<=16384:raise ValueError('请求长度无效')
             body=json.loads(self.rfile.read(size))
             if not isinstance(body,dict):raise ValueError('请求格式无效')
         except (ValueError,UnicodeError):self.json_response(400,{'error':'请求格式无效'});return
@@ -265,6 +296,24 @@ class Handler(BaseHTTPRequestHandler):
             except ValueError as exc:self.json_response(400,{'ok':False,'error':str(exc)})
             except (OSError,ConnectionError) as exc:self.json_response(503,{'ok':False,'error':str(exc)})
             return
+        if self.path=='/api/memory/save':
+            try:
+                goal=body.get('goal',STATE['goal'])
+                if not isinstance(goal,str) or not goal.strip() or len(goal)>600:raise ValueError('目标应为1至600字')
+                with LOCK:
+                    MEMORY.save_config(body,goal.strip());STATE['goal']=goal.strip()
+                    CONTROL_EPOCH+=1;HISTORY.clear()
+                    atomic(ROOT/'runtime/control.json',{'enabled':STATE['enabled'],'goal':STATE['goal']})
+                self.json_response(200,{'ok':True,'memory':MEMORY.view(STATE['goal'])})
+            except ValueError as exc:self.json_response(400,{'ok':False,'error':str(exc)})
+            return
+        if self.path=='/api/memory/summarize':
+            with MEMORY.lock:
+                if not MEMORY.running:MEMORY.pending=True
+            self.json_response(202,{'ok':True});return
+        if self.path=='/api/memory/checkpoint':
+            MEMORY.checkpoint(STATE['goal'],readjson(BRIDGE/'state.json'),STATE['step'],archive=True)
+            self.json_response(200,{'ok':True});return
         with LOCK:
             CONTROL_EPOCH+=1
             if 'enabled' in body:STATE['enabled']=bool(body['enabled'])
@@ -291,6 +340,8 @@ def main():
         STATE.update(step=max(r.get('step',0) for r in records),parsed=sum(bool(r.get('parsed')) for r in records),
             raw=last.get('raw',''),thinking=last.get('reasoning',''),last_action=last.get('action',''),latency=last.get('latency',0))
         STATE['history']=[dict(time=r.get('timestamp',time.time()),kind='decision',**r) for r in records[-10:]]
+    MEMORY.ensure(STATE['goal'])
+    MEMORY.checkpoint(STATE['goal'],readjson(BRIDGE/'state.json'),STATE['step'])
     threading.Thread(target=loop,daemon=True).start();threading.Thread(target=telemetry,daemon=True).start()
     threading.Thread(target=server_settings_loop,daemon=True).start()
     print('GTNH monitor: http://127.0.0.1:8790',flush=True)

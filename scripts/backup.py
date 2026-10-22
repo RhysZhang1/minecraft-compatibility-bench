@@ -26,7 +26,7 @@ def main():
         full=folder/f'PRIVATE-gamescaling-gtnh-full-{stamp}.tar.zst'
         paths=[name for name in tracked if name and (ROOT/name).is_file()]
         paths += [str(p.relative_to(ROOT)) for p in (ROOT/'input').glob('*.jar')]
-        paths += [name for name in ['instances','models','runtime','logs'] if (ROOT/name).exists()]
+        paths += [name for name in ['instances','models','runtime','logs','memory'] if (ROOT/name).exists()]
         filelist='\0'.join(paths)+'\0'
         subprocess.run(['tar','-I','zstd -T4 -1','-cf',str(full),'--null','-T','-'],
                        input=filelist.encode(),cwd=ROOT,check=True)
