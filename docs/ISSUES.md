@@ -8,3 +8,6 @@
 - 模型预算：原始 9B BF16 约 18.8 GB，无法给双 Java 进程留下足够余量；主方案采用对应检查点 Q4_K_M 与独立视觉投影。小模型官方文件作为格式与回退验证资料。
 - 原始桌面 GTNH 和 HMCL 文件只读复用；实验发生于当前项目的 `instances/` 副本。
 - 桥接采用客户端模组内的截图与按键绑定，不向整个桌面发送键鼠事件。
+- GTNH 主菜单由 Custom Main Menu 替换成 `GuiCustom`；自动连接识别该菜单，并处理断线重连。
+- 直接构造原版 `GuiConnecting` 绕过了 Forge 的握手初始化，导致 `playClientBlock` 空指针。改用 `FMLClientHandler.connectToServerAtStartup`，保留 Forge 正常握手链路。
+- 背包/任务书界面需要将模型鼠标位移映射为 GUI 坐标并派发界面点击、释放、拖动与键盘事件；仅设置游戏 KeyBinding 无法完成 GUI 操作。

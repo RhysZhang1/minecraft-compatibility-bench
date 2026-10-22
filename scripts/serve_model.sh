@@ -15,5 +15,5 @@ fi
 exec "$ENGINE" -m "$MODEL" --mmproj "$VISION" "${DEVICE_ARGS[@]}" \
   --host 127.0.0.1 --port 8789 --alias gamescaling --ctx-size 8192 --parallel 1 \
   --threads 6 --threads-batch 6 --batch-size 128 --ubatch-size 64 \
-  --special --jinja --chat-template-file "$ROOT/models/GameScaling-2B-S1/chat_template.jinja" \
+  --special --jinja --chat-template-file "$ROOT/models/GameScaling-9B-S1-GGUF/chat_template.jinja" \
   --reasoning-format none --no-context-shift

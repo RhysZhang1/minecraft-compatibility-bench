@@ -23,7 +23,13 @@ public class GameScalingBridge {
     private JsonObject action=null;
     private String error="";
     private Object mc;
+    private int cursorX=427,cursorY=240;
+    private long guiHold=0;
     private Set<Integer> held=new HashSet<Integer>();
+    private void report(Throwable ex){
+        while(ex instanceof InvocationTargetException&&ex.getCause()!=null)ex=ex.getCause();
+        String msg=ex.toString();if(!msg.equals(error))ex.printStackTrace();error=msg;
+    }
     private static Field field(Class<?> c,String... names)throws Exception {
         for(Class<?> k=c;k!=null;k=k.getSuperclass()) for(String n:names)
             try {Field f=k.getDeclaredField(n);f.setAccessible(true);return f;}catch(NoSuchFieldException e){}
@@ -55,12 +61,11 @@ public class GameScalingBridge {
             Object world=get(mc,"field_71441_e","theWorld");
             Object screen=get(mc,"field_71462_r","currentScreen");
             long now=System.currentTimeMillis();
-            if(world==null&&screen!=null&&screen.getClass().getSimpleName().equals("GuiMainMenu")&&now-lastConnect>15000){
+            if(world==null&&screen!=null&&(screen.getClass().getSimpleName().equals("GuiMainMenu")||screen.getClass().getSimpleName().equals("GuiCustom")||screen.getClass().getSimpleName().equals("GuiDisconnected"))&&now-lastConnect>30000){
                 lastConnect=now;
-                Class<?> gs=cls("net.minecraft.client.gui.GuiScreen"),sd=cls("net.minecraft.client.multiplayer.ServerData");
-                Object data=sd.getConstructor(String.class,String.class).newInstance("GTNH local test","127.0.0.1:25565");
-                Object gui=cls("net.minecraft.client.multiplayer.GuiConnecting").getConstructor(gs,mc.getClass(),sd).newInstance(screen,mc,data);
-                method(mc.getClass(),new String[]{"func_147108_a","displayGuiScreen"},gs).invoke(mc,gui);
+                Class<?> fml=cls("cpw.mods.fml.client.FMLClientHandler");
+                Object handler=fml.getMethod("instance").invoke(null);
+                fml.getMethod("connectToServerAtStartup",String.class,int.class).invoke(handler,"127.0.0.1",25565);
             }
             Object player=get(mc,"field_71439_g","thePlayer");
             if(player!=null){
@@ -72,7 +77,7 @@ public class GameScalingBridge {
                 JsonObject a=gson.fromJson(new String(Files.readAllBytes(command),"UTF-8"),JsonObject.class);
                 long id=a.get("id").getAsLong();
                 if(id>lastId&&action==null){
-                    lastId=id;action=a;started=now;
+                    lastId=id;action=a;started=now;error="";
                     if(player!=null&&screen==null){
                         JsonArray mouse=a.getAsJsonArray("mouse");
                         float dx=mouse.get(0).getAsFloat(),dy=mouse.get(1).getAsFloat();
@@ -83,6 +88,13 @@ public class GameScalingBridge {
                         int scroll=mouse.get(2).getAsInt();
                         if(scroll!=0){Object inv=get(player,"field_71071_by","inventory");
                             method(inv.getClass(),new String[]{"func_70453_c","changeCurrentItem"},int.class).invoke(inv,scroll);}
+                    } else if(screen!=null) {
+                        JsonArray mouse=a.getAsJsonArray("mouse");
+                        int w=((Number)get(mc,"field_71443_c","displayWidth")).intValue();
+                        int h=((Number)get(mc,"field_71440_d","displayHeight")).intValue();
+                        cursorX=Math.max(0,Math.min(w-1,cursorX+Math.round(mouse.get(0).getAsFloat()*w/1000f)));
+                        cursorY=Math.max(0,Math.min(h-1,cursorY+Math.round(mouse.get(1).getAsFloat()*h/1000f)));
+                        cls("org.lwjgl.input.Mouse").getMethod("setCursorPosition",int.class,int.class).invoke(null,cursorX,h-cursorY-1);
                     }
                 }
             }
@@ -90,6 +102,8 @@ public class GameScalingBridge {
                 state.addProperty("timestamp",now);state.addProperty("connected",world!=null&&player!=null);
                 state.addProperty("screen",screen==null?"":screen.getClass().getSimpleName());
                 state.addProperty("command_id",lastId);state.addProperty("busy",action!=null);state.addProperty("error",error);
+                state.addProperty("width",((Number)get(mc,"field_71443_c","displayWidth")).intValue());
+                state.addProperty("height",((Number)get(mc,"field_71440_d","displayHeight")).intValue());
                 if(player!=null){
                     for(String[] pair:new String[][]{{"x","field_70165_t"},{"y","field_70163_u"},{"z","field_70161_v"},{"yaw","field_70177_z"},{"pitch","field_70125_A"}})
                         state.addProperty(pair[0],(Number)get(player,pair[1]));
@@ -97,7 +111,7 @@ public class GameScalingBridge {
                 }
                 json("state.json",state);
             }
-        }catch(Throwable ex){error=ex.toString();if(System.currentTimeMillis()-lastStatus>5000){lastStatus=System.currentTimeMillis();ex.printStackTrace();}}
+        }catch(Throwable ex){report(ex);}
     }
     private int key(String k){
         if(k.length()==1&&k.charAt(0)>='A'&&k.charAt(0)<='Z'){
@@ -109,6 +123,27 @@ public class GameScalingBridge {
         for(int i=0;i<names.length;i++)if(names[i].equals(k))return codes[i];return 0;
     }
     private void apply(Set<Integer> next)throws Exception{
+        Object screen=get(mc,"field_71462_r","currentScreen");
+        if(screen!=null){
+            int w=((Number)get(mc,"field_71443_c","displayWidth")).intValue();
+            int h=((Number)get(mc,"field_71440_d","displayHeight")).intValue();
+            int sw=((Number)get(screen,"field_146294_l","width")).intValue();
+            int sh=((Number)get(screen,"field_146295_m","height")).intValue();
+            int x=cursorX*sw/w,y=cursorY*sh/h;
+            for(int n:held)if(n<0&&!next.contains(n))
+                method(screen.getClass(),new String[]{"func_146286_b","mouseMovedOrUp"},int.class,int.class,int.class).invoke(screen,x,y,n+100);
+            for(int n:next){
+                if(n<0){
+                    if(!held.contains(n)){
+                        guiHold=System.currentTimeMillis();
+                        method(screen.getClass(),new String[]{"func_73864_a","mouseClicked"},int.class,int.class,int.class).invoke(screen,x,y,n+100);
+                    }else method(screen.getClass(),new String[]{"func_146273_a","mouseClickMove"},int.class,int.class,int.class,long.class).invoke(screen,x,y,n+100,System.currentTimeMillis()-guiHold);
+                }else if(!held.contains(n)){
+                    char ch=n==18?'e':n==19?'r':n==22?'u':n==57?' ':'\0';
+                    method(screen.getClass(),new String[]{"func_73869_a","keyTyped"},char.class,int.class).invoke(screen,ch,n);
+                }
+            }
+        }
         Class<?> kb=cls("net.minecraft.client.settings.KeyBinding");
         Method set=method(kb,new String[]{"func_74510_a","setKeyBindState"},int.class,boolean.class);
         Method press=method(kb,new String[]{"func_74507_a","onTick"},int.class);
@@ -138,6 +173,6 @@ public class GameScalingBridge {
                 for(int y=0;y<h;y++)for(int x=0;x<w;x++){int i=(y*w+x)*4;image.setRGB(x,h-y-1,((pixels.get(i)&255)<<16)|((pixels.get(i+1)&255)<<8)|(pixels.get(i+2)&255));}
                 Path tmp=root.resolve("frame.tmp.jpg");ImageIO.write(image,"jpg",tmp.toFile());Files.move(tmp,root.resolve("frame.jpg"),StandardCopyOption.REPLACE_EXISTING,StandardCopyOption.ATOMIC_MOVE);
             }
-        }catch(Throwable ex){error=ex.toString();}
+        }catch(Throwable ex){report(ex);}
     }
 }

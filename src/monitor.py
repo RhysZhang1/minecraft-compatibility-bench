@@ -118,7 +118,7 @@ def loop():
             HISTORY.append((frame,a.history_text))
             # Only an actual completed, valid packet may move the game.
             if a.parsed and STATE['enabled']:
-                command_id+=1
+                command_id=max(command_id+1,int(time.time()*1000),readjson(BRIDGE/'state.json').get('command_id',0)+1)
                 atomic(BRIDGE/'command.json',{'id':command_id,'mouse':a.mouse,'steps':a.steps})
                 STATE['phase']='客户端执行200毫秒动作'
                 deadline=time.monotonic()+10
