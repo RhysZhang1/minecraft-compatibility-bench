@@ -1,0 +1,11 @@
+.venv/
+.cache/
+models/
+instances/
+runtime/
+logs/
+__pycache__/
+*.class
+bridge/build/
+bridge/*.jar
+research/

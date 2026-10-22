@@ -1,0 +1,11 @@
+{
+  "checkpoint": "THUSI-Lab/GameScaling-9B-S1",
+  "checkpoint_revision": "fe9d94cb5f48d645d5099b6856b7a871e803a22d",
+  "quantized_repo": "mradermacher/GameScaling-9B-S1-GGUF",
+  "quantized_revision": "24ab3de083e3e45140b5c43e704abb456f1af213",
+  "files": [
+    "GameScaling-9B-S1.Q4_K_M.gguf",
+    "GameScaling-9B-S1.mmproj-f16.gguf"
+  ],
+  "conversion_note": "Third-party quantization of the paper checkpoint; numerical equivalence to BF16 is not assumed."
+}
