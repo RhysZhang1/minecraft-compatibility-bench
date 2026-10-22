@@ -11,6 +11,7 @@ sys.path.insert(0,str(ROOT/'vendor/GameScaling'))
 from gamescaling.action import parse_action,split_reasoning,ACTION_END,NOOP_ACTION_TEXT
 from gamescaling.prompt import build_system_prompt
 import server_console
+import model_config
 
 BRIDGE=ROOT/'runtime/bridge'
 ENGINE='http://127.0.0.1:8789'
@@ -98,7 +99,7 @@ def loop():
                 with request('/health',timeout=2) as r:
                     if r.status!=200:continue
             except Exception:
-                STATE['phase']='等待 9B 模型下载或 llama.cpp 启动';continue
+                STATE['phase']='等待本地模型或 llama.cpp 启动';continue
             mem=memory()
             if mem.get('available_gb',100)<1.5:
                 STATE['phase']='可用内存低于1.5GiB，自动暂停推理';time.sleep(3);continue
@@ -133,6 +134,7 @@ def loop():
             record={'timestamp':time.time(),'step':STATE['step'],'raw':raw,'reasoning':reasoning,'action':a.history_text,
                     'parsed':a.parsed,'latency':elapsed,'game_before':game,'timings':finish.get('timings',{})}
             record['executed']=False
+            record['model']=readjson(ROOT/'runtime/model-active.json')
             if epoch!=CONTROL_EPOCH:record['discard_reason']='服务器命令已改变场景，丢弃此前推理的动作'
             atomic(evidence/(stamp+'.json'),record)
             with LOCK:
@@ -221,6 +223,7 @@ def status():
     if time.time()-result['game'].get('timestamp',0)/1000>10:
         result['game']['connected']=False
     result['memory']=memory();result['gpu']=dict(GPU)
+    result['model']=readjson(ROOT/'runtime/model-active.json')
     with LOCK:result['console']=dict(CONSOLE)
     result['processes']={}
     for name in ['server','client','model']:

@@ -1,0 +1,10 @@
+{
+  "GameScaling-2B-S1.Q4_K_M.gguf": {
+    "size": 1560461088,
+    "sha256": "596fc5092c82f8b78baeedc3a091c05da562de3e982ffd5215bde7cce05164dd"
+  },
+  "GameScaling-2B-S1.mmproj-f16.gguf": {
+    "size": 668227200,
+    "sha256": "2351316bd3fe5c935e5e027e8b38416ac0819f4e2f81e79010b942c2d7c35a6b"
+  }
+}

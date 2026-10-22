@@ -1,0 +1,21 @@
+{
+  "selected": "2b",
+  "models": {
+    "2b": {
+      "label": "GameScaling-2B-S1 · Q4_K_M",
+      "model": "models/GameScaling-2B-S1-GGUF/GameScaling-2B-S1.Q4_K_M.gguf",
+      "vision": "models/GameScaling-2B-S1-GGUF/GameScaling-2B-S1.mmproj-f16.gguf",
+      "template": "models/GameScaling-2B-S1-GGUF/chat_template.jinja",
+      "gpu_layers": 99,
+      "checksums": "models-2b-checksums.json"
+    },
+    "9b": {
+      "label": "GameScaling-9B-S1 · Q4_K_M",
+      "model": "models/GameScaling-9B-S1-GGUF/GameScaling-9B-S1.Q4_K_M.compat.gguf",
+      "vision": "models/GameScaling-9B-S1-GGUF/GameScaling-9B-S1.mmproj-f16.gguf",
+      "template": "models/GameScaling-9B-S1-GGUF/chat_template.jinja",
+      "gpu_layers": 8,
+      "checksums": "models-checksums.json"
+    }
+  }
+}

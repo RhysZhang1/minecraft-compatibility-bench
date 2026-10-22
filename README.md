@@ -17,6 +17,8 @@
 
 ```bash
 ./start.sh --profile cpu  # 纯CPU推理；切换配置前先stop.sh
+./start.sh --model 2b    # 默认2B，全语言权重、视觉和缓存放GPU
+./start.sh --model 9b    # 先stop.sh再切回保留的9B；默认8层GPU
 ./start.sh --paused      # 全部就绪后保持自动操作暂停
 ./start.sh --no-open     # 后台服务就绪，但不自动打开浏览器
 ./start.sh --timeout 900 # 每个启动阶段最多等待900秒
@@ -28,7 +30,7 @@ python3 scripts/lifecycle.py status
 
 ## 组成
 
-- 模型：GameScaling-9B-S1 的第三方 Q4_K_M 转换，配套该检查点的 FP16 视觉投影。
+- 默认模型：官方GameScaling-2B-S1在本机转换的Q4_K_M，配套同检查点FP16视觉编码器，语言权重全部GPU。保留9B第三方Q4_K_M兼容副本，可用`--model 9b`切换。
 - 推理：llama.cpp，支持纯 CPU 或少量层 GPU 卸载。与原始 BF16 的能力差异未作等价性验证。
 - 游戏：HMCL 中现有客户端和桌面服务器的独立副本，使用专用离线角色 GameScalingBot。
 - 桥接：客户端 Forge 模组内截取渲染画面、施加短时按键和 GUI 事件。操作不发送到整个桌面。
@@ -42,9 +44,10 @@ python3 scripts/lifecycle.py status
 ```bash
 uv venv --python 3.11 .venv
 uv pip install --python .venv/bin/python -r requirements.txt
+uv pip install --python .venv/bin/python -r requirements-conversion.txt
 .venv/bin/python scripts/prepare_instances.py
-bash scripts/download_models.sh
-.venv/bin/python scripts/normalize_gguf.py
+bash scripts/download_models.sh 2b
+.venv/bin/python scripts/prepare_2b.py
 .venv/bin/python scripts/extract_gtnh_context.py
 .venv/bin/python scripts/build_bridge.py
 ./start.sh
@@ -56,14 +59,21 @@ bash scripts/download_models.sh
 # 将模型切回纯 CPU；客户端仍使用显卡渲染。
 .venv/bin/python scripts/manage.py restart model --profile cpu
 
-# 默认只卸载 8 层，其余在内存。按实测余量调整。
-MODEL_GPU_LAYERS=8 MODEL_VISION_GPU=1 .venv/bin/python scripts/manage.py restart model --profile balanced
+# 9B方案只卸载8层；2B默认全部语言权重与视觉GPU。
+./stop.sh
+MODEL_GPU_LAYERS=8 MODEL_VISION_GPU=1 ./start.sh --model 9b
 
 # 只停止本实验进程；服务器通过 stop 指令正常保存。
 .venv/bin/python scripts/manage.py stop all
 ```
 
 在本机终端运行生命周期脚本；受限容器中的进程列表不一定能看到桌面上的进程。
+
+2B源权重固定版本`8036a8f05659f3ce79c4b98f0ccbee4142a0b53d`，已用hf校验，转换时使用本机llama.cpp的`--no-nextn`排除没有对应权重的MTP声明，再分别导出语言/视觉GGUF与Q4_K_M。`models-2b-manifest.json`和`models-2b-checksums.json`记录转换命令、工具版本和校验值；额外依赖仅用于转换，日常运行不需要PyTorch。
+
+默认2B方案请求全部层卸载，显式将全部语言张量放在CUDA0，视觉编码器、KV缓存及循环状态也使用GPU；进程仍需要系统内存用于程序、文件映射和输入输出。2B量化文件约1.56GB、视觉文件约0.67GB。当前实测与GTNH同时运行时，三组相同截图/历史回放显存峰值3802MiB，模型推理中位1.264秒；此前9B/8层GPU记录中位17.736秒。这是两种本机配置的小样本速度比较，不能作为模型能力评测。
+
+如需从头准备保留的9B文件，运行`bash scripts/download_models.sh 9b`和`.venv/bin/python scripts/normalize_gguf.py`，然后停止服务并`./start.sh --model 9b`。未指定模型时使用上次选择，首次默认为2B。
 
 客户端默认隐藏窗口，保持独立的游戏内虚拟焦点和输入；真实键鼠不会进入该测试角色。查看画面和暂停/恢复自动操作均使用 8790 观察台。隐藏窗口仍依赖当前桌面会话和 GPU 上下文，不是完全脱离图形会话的服务。
 
@@ -87,6 +97,8 @@ MODEL_GPU_LAYERS=8 MODEL_VISION_GPU=1 .venv/bin/python scripts/manage.py restart
 | `scripts/` | 下载、编译、启动和备份 |
 | `docs/ISSUES.md` | 实际问题与解决记录 |
 | `models-manifest.json` | 上游仓库与固定版本 |
+| `model-settings.json` | 2B/9B路径与GPU默认配置 |
+| `models-2b-manifest.json` | 官方2B来源与本机转换记录 |
 | `vendor/GameScaling/` | Apache-2.0 官方推理工具快照 |
 | `instances/` | 私有测试副本，不提交 Git |
 | `runtime/episodes/` | 实际推理输入、输出和动作记录，不提交 Git |

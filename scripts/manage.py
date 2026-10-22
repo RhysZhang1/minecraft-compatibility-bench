@@ -4,6 +4,7 @@ import argparse, json, os, signal, stat, subprocess, time, sys
 ROOT=Path(__file__).resolve().parents[1]
 sys.path.insert(0,str(ROOT/'src'))
 from server_console import configure
+import model_config
 JAVA=os.environ.get('MINECRAFT_JAVA_BIN','/home/rhys/.local/share/hmcl/java/linux-x86_64/mojang-java-runtime-epsilon/bin/java')
 NAMES=('server','client','model','monitor')
 
@@ -28,8 +29,9 @@ def matches(name,argv,cwd):
         return python_script('scripts/launch_game.py') or (executable=='java' and '-Dgamescaling.bridge='+str(ROOT/'runtime/bridge') in argv)
     if name=='model':
         wrapper=executable=='bash' and len(argv)>1 and argv[1]==str(ROOT/'scripts/serve_model.sh')
-        signature=all(value in argv for value in ['-m','--mmproj','--alias','gamescaling','--port','8789',str(ROOT/'models/GameScaling-9B-S1-GGUF/GameScaling-9B-S1.Q4_K_M.compat.gguf')])
-        return wrapper or signature
+        models=[str(ROOT/c['model']) for c in model_config.settings()['models'].values()]
+        signature=any(path in argv for path in models) and all(value in argv for value in ['-m','--mmproj','--alias','gamescaling','--port','8789'])
+        return wrapper or python_script('scripts/serve_model.py') or signature
     if name=='monitor':return python_script('src/monitor.py')
     return False
 

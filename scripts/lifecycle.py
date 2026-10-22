@@ -3,6 +3,7 @@ from pathlib import Path
 import argparse, contextlib, fcntl, hashlib, json, os, shutil, signal, socket, subprocess, sys, time
 from urllib.request import Request, ProxyHandler, build_opener
 import manage
+import model_config
 
 ROOT=Path(__file__).resolve().parents[1]
 RUNTIME=ROOT/'runtime'
@@ -85,12 +86,11 @@ def preflight():
         uv=shutil.which('uv')
         if not uv:raise RuntimeError('Python依赖不完整，请按README安装requirements.txt')
         say('补齐本项目的Python依赖…');run([uv,'pip','install','--python',python,'-r',ROOT/'requirements.txt'])
-    folder=ROOT/'models/GameScaling-9B-S1-GGUF'
-    original=folder/'GameScaling-9B-S1.Q4_K_M.gguf';compat=folder/'GameScaling-9B-S1.Q4_K_M.compat.gguf'
-    if not compat.exists() and original.exists():
+    conf=model_config.config();model=ROOT/conf['model'];folder=model.parent
+    original=folder/'GameScaling-9B-S1.Q4_K_M.gguf'
+    if conf['key']=='9b' and not model.exists() and original.exists():
         say('生成兼容模型副本并验证张量一致性…');run([python,ROOT/'scripts/normalize_gguf.py'])
-    expected={compat:load(ROOT/'gguf-normalization.json').get('output_sha256'),
-              folder/'GameScaling-9B-S1.mmproj-f16.gguf':load(ROOT/'models-checksums.json').get('GameScaling-9B-S1.mmproj-f16.gguf',{}).get('sha256')}
+    expected=model_config.expected(conf)
     cache=load(RUNTIME/'model-verification.json')
     for path,digest in expected.items():
         if not path.is_file() or not digest:
@@ -104,7 +104,7 @@ def preflight():
             if h.hexdigest()!=digest:raise RuntimeError('模型校验失败，请从备份恢复：'+str(path))
             cache[path.name]=fingerprint
     (RUNTIME/'model-verification.json').write_text(json.dumps(cache,indent=2))
-    for path in [folder/'chat_template.jinja',ROOT/'instances/server/java9args.txt',
+    for path in [ROOT/conf['template'],ROOT/'instances/server/java9args.txt',
                  ROOT/'instances/client/GT New Horizons 2.8.4.json',ROOT/'instances/client/GT New Horizons 2.8.4.jar']:
         if not path.is_file():raise RuntimeError('缺少启动资源：'+str(path))
     jars=[ROOT/'instances/client/mods/GameScalingBridge-1.0.jar',ROOT/'input/gamescaling-input-agent.jar',ROOT/'input/gamescaling-input-state.jar']
@@ -159,12 +159,15 @@ def cold_start(args):
     started=[]
     STOP_REQUEST.unlink(missing_ok=True)
     try:
+        if args.model:model_config.select(args.model)
         say('检查运行环境、模型及启动资源…');preflight()
         if manage.owned('model'):
             argv,_=manage.inspect(manage.owned('model'))
             current_cpu='--device' in argv and argv[argv.index('--device')+1]=='none'
             if current_cpu!=(args.profile=='cpu'):
                 raise RuntimeError('已运行模型的CPU/GPU配置不同，请先stop.sh再按所选配置启动')
+            if str(ROOT/model_config.config()['model']) not in argv:
+                raise RuntimeError('正在运行另一个大小的模型，请先停止模型服务或stop.sh再切换')
         save_control(False)
         for name in ['server','model']:
             if manage.start(name,args.profile):started.append(name)
@@ -180,7 +183,7 @@ def cold_start(args):
             return value if game.get('connected') and game.get('input_isolated') and game.get('window_visible') is False and value.get('console',{}).get('settings_applied') else None
         status=wait_ready('隐藏客户端连接及观察台',ready,['server','model','client','monitor'],args.timeout)
         save_control(not args.paused)
-        report={'time':time.time(),'result':'ready','profile':args.profile,'auto_enabled':not args.paused,
+        report={'time':time.time(),'result':'ready','profile':args.profile,'model':model_config.selected(),'auto_enabled':not args.paused,
                 'processes':{name:manage.owned_pids(name) for name in manage.NAMES},'game':status['game']}
         (RUNTIME/'last-start.json').write_text(json.dumps(report,indent=2))
         say('全部就绪：'+URL+('（自动操作已暂停）' if args.paused else '（自动操作已开启）'))
@@ -212,7 +215,8 @@ def complete_stop(args):
 def main():
     parser=argparse.ArgumentParser(description='GTNH × GameScaling 一键启停')
     parser.add_argument('action',choices=['start','stop','status'])
-    parser.add_argument('--profile',choices=['balanced','cpu'],default='balanced',help='默认8层GPU加视觉编码器；cpu为纯CPU推理')
+    parser.add_argument('--model',choices=['2b','9b'],help='选择并记住模型；默认2b，9b保留可切换')
+    parser.add_argument('--profile',choices=['balanced','cpu'],default='balanced',help='2B默认全GPU，9B默认8层GPU；cpu为纯CPU推理')
     parser.add_argument('--paused',action='store_true',help='全部就绪后保持自动操作暂停')
     parser.add_argument('--no-open',action='store_true',help='不自动打开浏览器')
     parser.add_argument('--timeout',type=int,default=600,help='每阶段就绪等待秒数，默认600')

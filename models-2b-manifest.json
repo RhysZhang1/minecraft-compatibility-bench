@@ -1,0 +1,56 @@
+{
+  "checkpoint": "THUSI-Lab/GameScaling-2B-S1",
+  "revision": "8036a8f05659f3ce79c4b98f0ccbee4142a0b53d",
+  "source_sha256": "320dd2f7e1804faceae76fbfd6bfb83f17c9294a369bebf07cf1f3278dec3351",
+  "source_mtp_tensor_count": 0,
+  "conversion": "Local llama.cpp; text uses --no-nextn, vision F16, text Q4_K_M",
+  "llama_commit": "680a9ae63d60d35c21a0dcd7d3fabdb9c6bfc963",
+  "converter_sha256": "e38975e1c68d98ac1664dfd530616eb35c72294382a4dd873d4746b23f27779f",
+  "conversion_dependencies": {
+    "torch": "2.14.1+cpu",
+    "numpy": "2.4.6",
+    "safetensors": "0.8.0",
+    "transformers": "5.20.2",
+    "sentencepiece": "0.2.2",
+    "protobuf": "7.36.2"
+  },
+  "commands": [
+    [
+      ".venv/bin/python",
+      "${LLAMA_CPP_SOURCE}/convert_hf_to_gguf.py",
+      "models/GameScaling-2B-S1",
+      "--outtype",
+      "f16",
+      "--no-nextn",
+      "--outfile",
+      "models/GameScaling-2B-S1-GGUF/GameScaling-2B-S1.f16.gguf"
+    ],
+    [
+      ".venv/bin/python",
+      "${LLAMA_CPP_SOURCE}/convert_hf_to_gguf.py",
+      "models/GameScaling-2B-S1",
+      "--outtype",
+      "f16",
+      "--mmproj",
+      "--outfile",
+      "models/GameScaling-2B-S1-GGUF/GameScaling-2B-S1.mmproj-f16.gguf"
+    ],
+    [
+      "${LLAMA_CPP_SOURCE}/build/bin/llama-quantize",
+      "models/GameScaling-2B-S1-GGUF/GameScaling-2B-S1.f16.gguf",
+      "models/GameScaling-2B-S1-GGUF/GameScaling-2B-S1.Q4_K_M.gguf",
+      "Q4_K_M",
+      "8"
+    ]
+  ],
+  "files": {
+    "GameScaling-2B-S1.Q4_K_M.gguf": {
+      "size": 1560461088,
+      "sha256": "596fc5092c82f8b78baeedc3a091c05da562de3e982ffd5215bde7cce05164dd"
+    },
+    "GameScaling-2B-S1.mmproj-f16.gguf": {
+      "size": 668227200,
+      "sha256": "2351316bd3fe5c935e5e027e8b38416ac0819f4e2f81e79010b942c2d7c35a6b"
+    }
+  }
+}
