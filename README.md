@@ -2,6 +2,30 @@
 
 将论文 GameScaling 的 Minecraft 操作策略接入 GTNH 2.8.4 / Minecraft 1.7.10。
 
+## 日常一键启动与完全停止
+
+在当前项目目录执行：
+
+```bash
+./start.sh
+./stop.sh
+```
+
+两个脚本都可从其他目录用绝对路径调用。启动脚本使用本机现有 HMCL 资源、Java、llama.cpp 和本目录权重；检查并补齐缺失的项目Python环境、独立测试副本及桥接，校验模型文件，启动服务器与模型，等待命令接口和模型就绪，再启动隐藏客户端和观察台。客户端实际连入服务器、输入隔离及默认游戏规则确认后才开启模型自动操作，并打开8790观察台。整个过程无需先打开HMCL或手动启动服务端。
+
+停止脚本暂停自动操作、关闭观察台和客户端，通过控制台执行save-all与stop正常保存世界，退出模型并核对本项目进程和监听端口。通过实际进程参数识别本项目服务，PID文件丢失时仍可找回；重复启动会复用同配置服务，重复停止可直接成功。启动失败会清理本次新启动的服务；启动期间另运行stop.sh会请求取消。正常服务器退出超时会报告错误并保留进程，避免直接中断世界保存。
+
+```bash
+./start.sh --profile cpu  # 纯CPU推理；切换配置前先stop.sh
+./start.sh --paused      # 全部就绪后保持自动操作暂停
+./start.sh --no-open     # 后台服务就绪，但不自动打开浏览器
+./start.sh --timeout 900 # 每个启动阶段最多等待900秒
+python3 scripts/lifecycle.py status
+./stop.sh --force        # 故障恢复：最终允许强杀卡住的服务器，可能丢失未保存进度
+```
+
+启动前无须激活虚拟环境；停止脚本只依赖系统Python。保持桌面会话登录，以保留隐藏客户端的图形上下文。环境路径可通过`HMCL_GAME_ROOT`、`MINECRAFT_JAVA_BIN`、`LLAMA_SERVER_BIN`等现有环境变量配置。详细服务输出在`logs/server.log`、`client.log`、`model.log`、`monitor.log`，启停进度在`logs/lifecycle.log`；最近验收结果在私有`runtime/last-start.json`与`runtime/last-stop.json`。
+
 ## 组成
 
 - 模型：GameScaling-9B-S1 的第三方 Q4_K_M 转换，配套该检查点的 FP16 视觉投影。
@@ -23,7 +47,7 @@ bash scripts/download_models.sh
 .venv/bin/python scripts/normalize_gguf.py
 .venv/bin/python scripts/extract_gtnh_context.py
 .venv/bin/python scripts/build_bridge.py
-.venv/bin/python scripts/manage.py start all --profile balanced
+./start.sh
 ```
 
 默认 llama.cpp 路径为 `/home/rhys/llama.cpp/build/bin/llama-server`，可以通过 `LLAMA_SERVER_BIN` 覆盖。用支持 Qwen3.5 多模态的构建；记录的本机版本为 build 10394 / commit 680a9ae63。
@@ -53,6 +77,8 @@ MODEL_GPU_LAYERS=8 MODEL_VISION_GPU=1 .venv/bin/python scripts/manage.py restart
 
 | 路径 | 内容 |
 |---|---|
+| `start.sh` / `stop.sh` | 一键冷启动与完全停止 |
+| `scripts/lifecycle.py` | 就绪等待、异常清理和完整停止验收 |
 | `bridge/src/` | 客户端 Forge 桥接源码 |
 | `input/src/` | 隐藏窗口与虚拟输入隔离 agent 源码 |
 | `src/monitor.py` | 观察台与截图→模型→动作闭环 |

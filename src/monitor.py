@@ -243,6 +243,7 @@ class Handler(BaseHTTPRequestHandler):
         else:self.send_error(404);return
         self.send_response(200);self.send_header('Content-Type',mime);self.send_header('Cache-Control','no-store');self.end_headers();self.wfile.write(data)
     def do_POST(self):
+        global CONTROL_EPOCH
         origin=self.headers.get('Origin')
         if origin and origin not in ['http://127.0.0.1:8790','http://localhost:8790']:
             self.send_error(403);return
@@ -262,6 +263,7 @@ class Handler(BaseHTTPRequestHandler):
             except (OSError,ConnectionError) as exc:self.json_response(503,{'ok':False,'error':str(exc)})
             return
         with LOCK:
+            CONTROL_EPOCH+=1
             if 'enabled' in body:STATE['enabled']=bool(body['enabled'])
             if 'goal' in body:STATE['goal']=str(body['goal'])[:1000];HISTORY.clear()
             atomic(ROOT/'runtime/control.json',{'enabled':STATE['enabled'],'goal':STATE['goal']})
