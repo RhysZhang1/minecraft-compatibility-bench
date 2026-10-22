@@ -3,6 +3,8 @@ from pathlib import Path
 import json, os, re, subprocess, sys, uuid, zipfile
 
 ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0,str(ROOT/'src'))
+from game_config import config as game_config,client_options
 SOURCE = Path(os.environ.get('HMCL_GAME_ROOT','/home/rhys/.config/hmcl/.minecraft'))
 CLIENT = ROOT / 'instances/client'
 JAVA = Path(os.environ.get('MINECRAFT_JAVA_BIN','/home/rhys/.local/share/hmcl/java/linux-x86_64/mojang-java-runtime-epsilon/bin/java'))
@@ -25,6 +27,7 @@ def allowed(rules):
     return result
 
 def main():
+    resources=game_config()['client'];client_options(CLIENT/'options.txt')
     version = json.loads((CLIENT / 'GT New Horizons 2.8.4.json').read_text())
     natives = ROOT / 'runtime/natives'
     natives.mkdir(parents=True, exist_ok=True)
@@ -91,7 +94,7 @@ def main():
             if a.startswith('-Dhmcl.mmc.bootstrap='): continue
             jvm.append(expand(a))
     game = [expand(a) for a in version['arguments']['game'] if isinstance(a,str)]
-    cmd = [str(JAVA), '-Xms1G','-Xmx6G','-Dfml.readTimeout=600',
+    cmd = [str(JAVA), '-Xms'+resources['min_heap'],'-Xmx'+resources['max_heap'],'-Dfml.readTimeout=600',
            '-javaagent:'+str(ROOT/'input/gamescaling-input-agent.jar'),
            '-Dfml.ignoreInvalidMinecraftCertificates=true','-Dfml.ignorePatchDiscrepancies=true',
            '-Dminecraft.client.jar='+str(CLIENT/'GT New Horizons 2.8.4.jar'),

@@ -1,0 +1,7 @@
+{
+  "server": {"min_heap": "6G", "max_heap": "6G"},
+  "client": {
+    "min_heap": "2G", "max_heap": "8G",
+    "options": {"renderDistance": 8, "maxFps": 120, "fancyGraphics": true}
+  }
+}

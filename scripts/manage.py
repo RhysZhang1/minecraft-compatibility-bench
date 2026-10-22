@@ -48,13 +48,15 @@ def owned(name):
     return pids[0] if pids else None
 
 def start(name,profile='balanced'):
+    from game_config import config as game_config
+    game=game_config()
     pids=owned_pids(name)
     if len(pids)>1:raise RuntimeError(f'{name} 有多个本项目进程，请先运行 stop.sh 完整停止')
     if pids:
         (ROOT/f'runtime/{name}.pid').write_text(str(pids[0]));return False
     cwd=ROOT
     args={
-      'server':[JAVA,'-Xms1G','-Xmx4G','-Dfml.readTimeout=600','@java9args.txt','-jar','lwjgl3ify-forgePatches.jar','nogui'],
+      'server':[JAVA,'-Xms'+game['server']['min_heap'],'-Xmx'+game['server']['max_heap'],'-Dfml.readTimeout=600','@java9args.txt','-jar','lwjgl3ify-forgePatches.jar','nogui'],
       'client':[str(ROOT/'.venv/bin/python'),str(ROOT/'scripts/launch_game.py')],
       'model':['bash',str(ROOT/'scripts/serve_model.sh'),profile],
       'monitor':[str(ROOT/'.venv/bin/python'),str(ROOT/'src/monitor.py')]}[name]

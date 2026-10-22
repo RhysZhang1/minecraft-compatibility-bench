@@ -1,4 +1,4 @@
 {
-  "properties": {"difficulty": "0", "hardcore": "false"},
+  "properties": {"difficulty": "0", "hardcore": "false", "view-distance": "8"},
   "commands": ["difficulty peaceful", "gamerule keepInventory true"]
 }

@@ -22,7 +22,7 @@ STATE={'phase':'等待客户端和模型就绪','enabled':True,'step':0,'raw':''
 LOCK=threading.RLock()
 HISTORY=collections.deque(maxlen=5)
 ABORT=threading.Event()
-CONTROL_EPOCH=0
+CONTROL_EPOCH=int(time.time()*1000)
 COMMAND_LOCK=threading.Lock()
 CONSOLE={'ready':False,'settings_applied':False,'message':'等待服务器命令服务','history':[]}
 OPENER=__import__('urllib.request',fromlist=['build_opener']).build_opener(__import__('urllib.request',fromlist=['ProxyHandler']).ProxyHandler({}))
@@ -35,6 +35,15 @@ def readjson(path,default=None):
 def atomic(path,value):
     p=Path(path);p.parent.mkdir(parents=True,exist_ok=True)
     tmp=p.with_suffix('.tmp');tmp.write_text(json.dumps(value,ensure_ascii=False));tmp.replace(p)
+
+def publish_safety():
+    with LOCK:atomic(BRIDGE/'safety.json',{'epoch':CONTROL_EPOCH,'timestamp':int(time.time()*1000)})
+
+def safety_loop():
+    while not ABORT.is_set():
+        try:publish_safety()
+        except OSError:traceback.print_exc()
+        ABORT.wait(.25)
 
 def request(path,body=None,timeout=10):
     req=Request(ENGINE+path,data=None if body is None else json.dumps(body).encode(),headers={'Content-Type':'application/json'})
@@ -62,7 +71,9 @@ def system_prompt(memory_context=None):
       'The starting hotbar item is a Quest Book, not an axe. Verify the actually selected item on screen before assuming a tool is equipped. '
       'The following requirements were extracted from this installed pack version: '+quest_hint+
       'Avoid destroying player buildings. Do not type chat commands. Keep the camera near the horizon when travelling. '
-      'The game runs while you infer, but every action packet is executed only for 200ms, then ALL keys are released. '
+      'Each action packet covers 200ms. Movement and use keys release afterwards. '
+      'To mine, aim steadily at a harvestable block and hold LB in all six substeps. Only LB can then remain held on that same block while you infer, for at most 10 seconds. '
+      'The mining hold stops if the target changes, the block breaks, a GUI opens, control pauses, or the watchdog expires. Check the next observation for results. '
       'Only act on the current screenshot. Close a blocking overlay with Esc when necessary. '
       'Current objective: '+STATE['goal']+'\n'+memory_context),key_bindings=[
         ('W','Move forward'),('A','Strafe left'),('S','Move backward'),('D','Strafe right'),
@@ -105,6 +116,7 @@ def summarize_memory():
         MEMORY.running=False
 
 def loop():
+    global CONTROL_EPOCH
     command_id=int(time.time()*1000)
     while not ABORT.wait(1):
         try:
@@ -115,7 +127,7 @@ def loop():
                 summarize_memory()
             with LOCK:enabled=STATE['enabled'];epoch=CONTROL_EPOCH
             if not enabled:
-                STATE['phase']='已暂停；所有动作会在200毫秒内释放';continue
+                STATE['phase']='已暂停；已请求释放动作与挖掘长按';continue
             game=readjson(BRIDGE/'state.json')
             if not game.get('connected') or time.time()-game.get('timestamp',0)/1000>10:
                 STATE['phase']='等待 GTNH 客户端连接测试服务器';continue
@@ -163,7 +175,7 @@ def loop():
             record['model']=readjson(ROOT/'runtime/model-active.json')
             record['agent_memory']={'revision':MEMORY.config()['revision'],'context':memory_context,
                                     'sha256':hashlib.sha256(memory_context.encode()).hexdigest()}
-            if epoch!=CONTROL_EPOCH:record['discard_reason']='服务器命令已改变场景，丢弃此前推理的动作'
+            if epoch!=CONTROL_EPOCH:record['discard_reason']='控制状态或目标已变化，丢弃此前推理的动作'
             atomic(evidence/(stamp+'.json'),record)
             with LOCK:
                 if epoch==CONTROL_EPOCH:HISTORY.append((frame,a.history_text))
@@ -172,13 +184,16 @@ def loop():
                 execute_action=a.parsed and STATE['enabled'] and epoch==CONTROL_EPOCH
                 if execute_action:
                     command_id=max(command_id+1,int(time.time()*1000),readjson(BRIDGE/'state.json').get('command_id',0)+1)
-                    atomic(BRIDGE/'command.json',{'id':command_id,'mouse':a.mouse,'steps':a.steps})
+                    atomic(BRIDGE/'command.json',{'id':command_id,'mouse':a.mouse,'steps':a.steps,'epoch':epoch,'sustain_mining':True})
             if execute_action:
-                STATE['phase']='客户端执行200毫秒动作'
+                STATE['phase']='客户端执行动作；同一方块挖掘可继续长按'
                 deadline=time.monotonic()+10
                 while time.monotonic()<deadline:
-                    if readjson(BRIDGE/'completed.json').get('id')==command_id:
-                        record.update(executed=True,command_id=command_id,game_after=readjson(BRIDGE/'state.json'))
+                    completed=readjson(BRIDGE/'completed.json')
+                    if completed.get('id')==command_id:
+                        record.update(executed=not completed.get('cancelled',False),completion=completed,
+                                      command_id=command_id,game_after=readjson(BRIDGE/'state.json'))
+                        if completed.get('cancelled'):record['discard_reason']='客户端因控制变化或心跳过期取消动作'
                         break
                     time.sleep(.05)
                 else:raise RuntimeError('客户端没有确认动作完成；已停止发送后续动作')
@@ -186,6 +201,7 @@ def loop():
                 STATE['errors']+=1;STATE['phase']='模型输出未通过解析，保持静止';time.sleep(2)
             atomic(evidence/(stamp+'.json'),record);event('decision',**record)
         except Exception as exc:
+            with LOCK:CONTROL_EPOCH+=1;publish_safety()
             STATE['errors']+=1;STATE.update(phase='等待恢复：'+str(exc),inference_started=None)
             event('error',message=str(exc));traceback.print_exc();HISTORY.clear();time.sleep(5)
 
@@ -212,10 +228,14 @@ def run_command(command,pause=True):
         with LOCK:
             if pause:STATE['enabled']=False
             CONTROL_EPOCH+=1;HISTORY.clear()
+            publish_safety()
             atomic(ROOT/'runtime/control.json',{'enabled':STATE['enabled'],'goal':STATE['goal']})
         # Finish the current bounded action before applying a manual world change.
         deadline=time.monotonic()+2
-        while readjson(BRIDGE/'state.json').get('busy') and time.monotonic()<deadline:time.sleep(.05)
+        while time.monotonic()<deadline:
+            game=readjson(BRIDGE/'state.json')
+            if not game.get('busy') and not game.get('mining_active'):break
+            time.sleep(.05)
         try:
             output=server_console.execute(command)
             return command_event(command,output or '（服务器未返回文字）')
@@ -303,6 +323,7 @@ class Handler(BaseHTTPRequestHandler):
                 with LOCK:
                     MEMORY.save_config(body,goal.strip());STATE['goal']=goal.strip()
                     CONTROL_EPOCH+=1;HISTORY.clear()
+                    publish_safety()
                     atomic(ROOT/'runtime/control.json',{'enabled':STATE['enabled'],'goal':STATE['goal']})
                 self.json_response(200,{'ok':True,'memory':MEMORY.view(STATE['goal'])})
             except ValueError as exc:self.json_response(400,{'ok':False,'error':str(exc)})
@@ -316,6 +337,7 @@ class Handler(BaseHTTPRequestHandler):
             self.json_response(200,{'ok':True});return
         with LOCK:
             CONTROL_EPOCH+=1
+            publish_safety()
             if 'enabled' in body:STATE['enabled']=bool(body['enabled'])
             if 'goal' in body:STATE['goal']=str(body['goal'])[:1000];HISTORY.clear()
             atomic(ROOT/'runtime/control.json',{'enabled':STATE['enabled'],'goal':STATE['goal']})
@@ -342,6 +364,7 @@ def main():
         STATE['history']=[dict(time=r.get('timestamp',time.time()),kind='decision',**r) for r in records[-10:]]
     MEMORY.ensure(STATE['goal'])
     MEMORY.checkpoint(STATE['goal'],readjson(BRIDGE/'state.json'),STATE['step'])
+    publish_safety();threading.Thread(target=safety_loop,daemon=True).start()
     threading.Thread(target=loop,daemon=True).start();threading.Thread(target=telemetry,daemon=True).start()
     threading.Thread(target=server_settings_loop,daemon=True).start()
     print('GTNH monitor: http://127.0.0.1:8790',flush=True)

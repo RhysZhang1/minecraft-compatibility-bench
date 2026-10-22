@@ -28,6 +28,12 @@ public class GameScalingBridge {
     private long lastProbe=-1;
     private Set<Integer> held=new HashSet<Integer>();
     private Set<Integer> guiMouseHeld=new HashSet<Integer>();
+    private JsonObject packetTarget=null,miningTarget=null;
+    private long actionEpoch=-1,miningEpoch=-1,miningStarted=0,miningDeadline=0;
+    private String miningStop="",telemetryError="";
+    private int renderedFrames=0;
+    private long fpsSince=System.currentTimeMillis();
+    private double renderFps=0;
     private void report(Throwable ex){
         while(ex instanceof InvocationTargetException&&ex.getCause()!=null)ex=ex.getCause();
         String msg=ex.toString();if(!msg.equals(error))ex.printStackTrace();error=msg;
@@ -77,6 +83,17 @@ public class GameScalingBridge {
                 fml.getMethod("connectToServerAtStartup",String.class,int.class).invoke(handler,"127.0.0.1",25565);
             }
             Object player=get(mc,"field_71439_g","thePlayer");
+            if((action!=null&&actionEpoch>=0&&!leaseValid(actionEpoch,now))||
+               (miningTarget!=null&&!leaseValid(miningEpoch,now))){
+                finishMining("control changed or heartbeat expired",true);
+                if(action!=null){complete(now,true);action=null;}
+            }
+            if(miningTarget!=null){
+                String reason=world==null||player==null?"disconnected":screen!=null?"GUI opened":
+                    now>=miningDeadline?"maximum hold reached":
+                    !miningTarget.equals(targetBlock())?"target changed or block broken":"";
+                if(!reason.isEmpty())finishMining(reason,true);
+            }
             Path probe=root.resolve("input-probe.json");
             if(Files.exists(probe)&&action==null){
                 long probeId=gson.fromJson(new String(Files.readAllBytes(probe),"UTF-8"),JsonObject.class).get("id").getAsLong();
@@ -91,7 +108,12 @@ public class GameScalingBridge {
                 JsonObject a=gson.fromJson(new String(Files.readAllBytes(command),"UTF-8"),JsonObject.class);
                 long id=a.get("id").getAsLong();
                 if(id>lastId&&action==null){
+                    finishMining("next model action",false);
                     lastId=id;action=a;started=now;error="";
+                    actionEpoch=a.has("epoch")?a.get("epoch").getAsLong():-1;
+                    if(actionEpoch>=0&&!leaseValid(actionEpoch,now)){
+                        apply(new HashSet<Integer>());complete(now,true);action=null;return;
+                    }
                     if(player!=null&&screen==null){
                         JsonArray mouse=a.getAsJsonArray("mouse");
                         float dx=mouse.get(0).getAsFloat(),dy=mouse.get(1).getAsFloat();
@@ -120,12 +142,27 @@ public class GameScalingBridge {
                     if(a.getAsJsonArray("steps").size()>0)
                         for(JsonElement k:a.getAsJsonArray("steps").get(0).getAsJsonArray()){int n=key(k.getAsString());if(n!=0)first.add(n);}
                     apply(first);
+                    packetTarget=world!=null&&screen==null?targetBlock():null;
                 }
             }
             if(now-lastStatus>500){lastStatus=now;JsonObject state=new JsonObject();
                 state.addProperty("timestamp",now);state.addProperty("connected",world!=null&&player!=null);
                 state.addProperty("screen",screen==null?"":screen.getClass().getSimpleName());
                 state.addProperty("command_id",lastId);state.addProperty("busy",action!=null);state.addProperty("error",error);
+                state.addProperty("mining_active",miningTarget!=null);state.addProperty("mining_stop",miningStop);
+                if(miningTarget!=null){state.add("mining_target",miningTarget);state.addProperty("mining_elapsed_ms",now-miningStarted);}
+                state.addProperty("render_fps",Math.round(renderFps*10)/10.0);
+                try{
+                    Object options=get(mc,"field_71474_y","gameSettings");
+                    state.addProperty("render_distance",((Number)get(options,"field_151451_c","renderDistanceChunks")).intValue());
+                    Object renderer=get(mc,"field_71438_f","renderGlobal");
+                    state.addProperty("render_debug",String.valueOf(method(renderer.getClass(),new String[]{"func_72735_c","getDebugInfoRenders"}).invoke(renderer)));
+                    if(world!=null){Object provider=method(world.getClass(),new String[]{"func_72863_F","getChunkProvider"}).invoke(world);
+                        state.addProperty("chunk_debug",String.valueOf(method(provider.getClass(),new String[]{"func_73148_d","makeString"}).invoke(provider)));}
+                    telemetryError="";
+                }catch(Throwable ex){telemetryError=ex.toString();}
+                state.addProperty("telemetry_error",telemetryError);
+                try{JsonObject target=targetBlock();if(target!=null)state.add("target_block",target);}catch(Exception ignored){}
                 state.addProperty("width",((Number)get(mc,"field_71443_c","displayWidth")).intValue());
                 state.addProperty("height",((Number)get(mc,"field_71440_d","displayHeight")).intValue());
                 state.addProperty("input_isolated",VirtualInput.ready());
@@ -146,7 +183,49 @@ public class GameScalingBridge {
                 }
                 json("state.json",state);
             }
-        }catch(Throwable ex){report(ex);}
+        }catch(Throwable ex){try{finishMining("bridge error",true);apply(new HashSet<Integer>());action=null;}catch(Exception ignored){}report(ex);}
+    }
+    private boolean leaseValid(long epoch,long now){
+        try{
+            JsonObject s=gson.fromJson(new String(Files.readAllBytes(root.resolve("safety.json")),"UTF-8"),JsonObject.class);
+            long age=now-s.get("timestamp").getAsLong();
+            return age>=-1000&&age<1500&&s.get("epoch").getAsLong()==epoch;
+        }catch(Exception ex){return false;}
+    }
+    private JsonObject targetBlock()throws Exception{
+        Object world=get(mc,"field_71441_e","theWorld"),hit=get(mc,"field_71476_x","objectMouseOver");
+        if(world==null||hit==null||!"BLOCK".equals(String.valueOf(get(hit,"field_72313_a","typeOfHit"))))return null;
+        int x=((Number)get(hit,"field_72311_b","blockX")).intValue(),y=((Number)get(hit,"field_72312_c","blockY")).intValue(),z=((Number)get(hit,"field_72309_d","blockZ")).intValue();
+        Object block=method(world.getClass(),new String[]{"func_147439_a","getBlock"},int.class,int.class,int.class).invoke(world,x,y,z);
+        Object registry=field(cls("net.minecraft.block.Block"),"field_149771_c","blockRegistry").get(null);
+        String name=String.valueOf(method(registry.getClass(),new String[]{"func_148750_c","getNameForObject"},Object.class).invoke(registry,block));
+        if("minecraft:air".equals(name))return null;
+        JsonObject result=new JsonObject();result.addProperty("x",x);result.addProperty("y",y);result.addProperty("z",z);result.addProperty("block",name);
+        result.addProperty("meta",(Number)method(world.getClass(),new String[]{"func_72805_g","getBlockMetadata"},int.class,int.class,int.class).invoke(world,x,y,z));
+        Object player=get(mc,"field_71439_g","thePlayer");
+        if(player!=null){Object inventory=get(player,"field_71071_by","inventory");result.addProperty("selected_slot",(Number)get(inventory,"field_70461_c","currentItem"));}
+        return result;
+    }
+    private boolean canSustain()throws Exception{
+        if(actionEpoch<0||!leaseValid(actionEpoch,System.currentTimeMillis())||packetTarget==null||!packetTarget.equals(targetBlock()))return false;
+        if(!action.has("sustain_mining")||!action.get("sustain_mining").getAsBoolean()||get(mc,"field_71462_r","currentScreen")!=null)return false;
+        JsonArray steps=action.getAsJsonArray("steps");if(steps.size()!=6)return false;
+        for(JsonElement step:steps){boolean left=false;for(JsonElement k:step.getAsJsonArray()){
+            String name=k.getAsString();if("LB".equals(name))left=true;if("RB".equals(name)||"MB".equals(name))return false;
+        }if(!left)return false;}
+        return true;
+    }
+    private void complete(long now,boolean cancelled)throws Exception{
+        JsonObject done=new JsonObject();done.addProperty("id",lastId);done.addProperty("time",now);done.addProperty("cancelled",cancelled);
+        done.addProperty("mining_continues",miningTarget!=null);json("completed.json",done);
+    }
+    private void finishMining(String reason,boolean release)throws Exception{
+        if(miningTarget!=null){
+            JsonObject done=new JsonObject();done.add("target",miningTarget);done.addProperty("started",miningStarted);
+            done.addProperty("ended",System.currentTimeMillis());done.addProperty("reason",reason);json("mining-result.json",done);
+            miningTarget=null;miningStop=reason;
+        }
+        if(release)apply(new HashSet<Integer>());
     }
     private int key(String k){
         if(k.length()==1&&k.charAt(0)>='A'&&k.charAt(0)<='Z'){
@@ -246,9 +325,17 @@ public class GameScalingBridge {
         if(mc==null||e.phase!=TickEvent.Phase.END)return;
         try{
             long now=System.currentTimeMillis();
+            renderedFrames++;
+            if(now-fpsSince>=1000){renderFps=renderedFrames*1000.0/(now-fpsSince);renderedFrames=0;fpsSince=now;}
             if(action!=null){
                 long elapsed=now-started;int step=(int)(elapsed/33.333333);
-                if(step>=6){apply(new HashSet<Integer>());JsonObject done=new JsonObject();done.addProperty("id",lastId);done.addProperty("time",now);json("completed.json",done);action=null;}
+                if(step>=6){
+                    if(canSustain()){
+                        miningTarget=packetTarget;miningEpoch=actionEpoch;miningStarted=now;miningDeadline=now+10000;miningStop="";
+                        apply(new HashSet<Integer>(Arrays.asList(-100)));
+                    }else apply(new HashSet<Integer>());
+                    complete(now,false);action=null;
+                }
                 else{Set<Integer> next=new HashSet<Integer>();JsonArray steps=action.getAsJsonArray("steps");
                     if(step<steps.size())for(JsonElement k:steps.get(step).getAsJsonArray()){int n=key(k.getAsString());if(n!=0)next.add(n);}
                     apply(next);
@@ -268,6 +355,6 @@ public class GameScalingBridge {
                 }
                 Path tmp=root.resolve("frame.tmp.jpg");ImageIO.write(image,"jpg",tmp.toFile());Files.move(tmp,root.resolve("frame.jpg"),StandardCopyOption.REPLACE_EXISTING,StandardCopyOption.ATOMIC_MOVE);
             }
-        }catch(Throwable ex){report(ex);}
+        }catch(Throwable ex){try{finishMining("render error",true);apply(new HashSet<Integer>());action=null;}catch(Exception ignored){}report(ex);}
     }
 }
