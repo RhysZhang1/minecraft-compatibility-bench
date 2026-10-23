@@ -39,15 +39,17 @@ def digest(path,start=0):
     return h.hexdigest()
 
 def main():
+    expected=json.loads((ROOT/'models-checksums.json').read_text())[SRC.name]['sha256']
+    if digest(SRC)!=expected:raise ValueError('原始9B模型SHA256不一致；未修改兼容副本')
     fields,names,data_start=inspect(SRC)
     actual=max(int(n.split('.')[1]) for n in names if n.startswith('blk.'))+1
     assert actual==32 and fields['qwen35.block_count'][2]==33 and fields['qwen35.nextn_predict_layers'][2]==1
     assert not any(n.startswith('blk.32.') for n in names)
-    if not DST.exists():
-        # cp attempts a filesystem copy-on-write clone, then falls back to a regular copy.
-        __import__('subprocess').run(['cp','--reflink=auto',str(SRC),str(DST)],check=True)
+    temporary=DST.with_suffix('.partial.gguf')
+    # Publish only after tensor validation, so an interrupted edit cannot be reused.
+    __import__('subprocess').run(['cp','--reflink=auto',str(SRC),str(temporary)],check=True)
     edits=[]
-    with DST.open('r+b') as f:
+    with temporary.open('r+b') as f:
         for key,new in [('qwen35.block_count',32),('qwen35.nextn_predict_layers',0)]:
             offset,typ,old=fields[key];assert typ==4
             f.seek(offset);f.write(struct.pack('<I',new));edits.append({'key':key,'offset':offset,'old':old,'new':new})
@@ -65,7 +67,8 @@ def main():
         assert pattern==[int((i+1)%4!=0) for i in range(32)]
         f.seek(offset);f.write(newkey)
         edits.append({'key':oldkey.decode(),'offset':offset,'rename':newkey.decode(),'reason':'derive main-layer attention pattern from interval=4'})
-    tensor_hash=digest(SRC,data_start);assert tensor_hash==digest(DST,data_start)
+    tensor_hash=digest(SRC,data_start);assert tensor_hash==digest(temporary,data_start)
+    temporary.replace(DST)
     record={'source':SRC.name,'output':DST.name,'edits':edits,'tensor_data_start':data_start,
             'tensor_sha256_unchanged':tensor_hash,'output_sha256':digest(DST)}
     (ROOT/'gguf-normalization.json').write_text(json.dumps(record,indent=2));print(json.dumps(record,indent=2))

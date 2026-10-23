@@ -8,7 +8,6 @@ COMPONENTS={8:'jre-legacy',16:'java-runtime-alpha',17:'java-runtime-gamma',21:'j
 def install(major):
     if major not in COMPONENTS:raise ValueError('启动器未登记这个Java版本')
     target=ROOT/'instances/java'/str(major)
-    if (target/'bin/java').exists():return target
     entry=fetch_json(ALL)['linux'][COMPONENTS[major]][0];target.mkdir(parents=True,exist_ok=True)
     manifest_path=target/'runtime-manifest.json';download(entry['manifest']['url'],manifest_path,entry['manifest']['sha1']);manifest=json.loads(manifest_path.read_text())
     tasks=[]

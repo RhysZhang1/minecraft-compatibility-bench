@@ -16,6 +16,18 @@ def digest(p):
         for block in iter(lambda:f.read(16*1024*1024),b''):h.update(block)
     return h.hexdigest()
 
+def convert_atomic(target,command):
+    """A failed conversion must never masquerade as a complete output on retry."""
+    if target.exists():return
+    temporary=target.with_name(target.stem+'.partial.gguf')
+    args=[str(temporary) if str(part)==str(target) else part for part in command]
+    try:
+        subprocess.run(args,cwd=ROOT,check=True)
+        with temporary.open('rb') as f:
+            if f.read(4)!=b'GGUF':raise ValueError('转换没有生成有效GGUF：'+str(temporary))
+        temporary.replace(target)
+    finally:temporary.unlink(missing_ok=True)
+
 def main():
     OUTPUT.mkdir(exist_ok=True,parents=True)
     weights=SOURCE/'model.safetensors'
@@ -33,7 +45,7 @@ def main():
               convert+['--mmproj','--outfile',str(vision)],
               [str(LLAMA/'build/bin/llama-quantize'),str(f16),str(q4),'Q4_K_M','8']]
     for target,command in zip([f16,vision,q4],commands):
-        if not target.exists():subprocess.run(command,cwd=ROOT,check=True)
+        convert_atomic(target,command)
     shutil.copy2(SOURCE/'chat_template.jinja',OUTPUT/'chat_template.jinja')
     hashes={p.name:{'size':p.stat().st_size,'sha256':digest(p)} for p in [q4,vision]}
     (ROOT/'models-2b-checksums.json').write_text(json.dumps(hashes,indent=2))

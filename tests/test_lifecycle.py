@@ -7,6 +7,12 @@ import manage
 import lifecycle
 
 class OwnershipTests(unittest.TestCase):
+    def test_display_publisher_is_one_service_with_its_compositor_supervisor(self):
+        root=manage.ROOT;script=str(root/'scripts/virtual_display.py')
+        def inspect(pid):return (['python3',script,'serve' if pid==100 else 'publish'],root)
+        with patch.object(manage,'owned_pids',return_value=[100,101]),patch.object(manage,'inspect',side_effect=inspect),patch.object(manage.os,'getpgid',return_value=100),patch.object(Path,'write_text'),patch.object(manage.subprocess,'Popen') as spawn:
+            self.assertFalse(manage.start('display'));spawn.assert_not_called()
+
     def test_replacement_client_cannot_reuse_old_connected_snapshot(self):
         with tempfile.TemporaryDirectory() as folder:
             root=Path(folder);(root/'runtime/bridge').mkdir(parents=True);(root/'logs').mkdir()

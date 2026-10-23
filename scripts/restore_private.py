@@ -35,6 +35,10 @@ def rebind():
  java=convert(env.java())
  if Path(java).exists():settings['java']=java
  env.save(settings)
+ import vanilla_servers
+ for key,item in vanilla_servers.registry().items():
+  folder=Path(item['directory'])
+  if folder.is_dir() and folder.resolve().is_relative_to(ROOT):vanilla_servers.write_wrappers(folder,key)
  python=ROOT/'external/python-runtime/bin/python3.11'
  if python.exists() and (ROOT/'.venv').exists():
   for name in ('python','python3','python3.11'):

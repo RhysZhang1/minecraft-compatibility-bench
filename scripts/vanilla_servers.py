@@ -32,11 +32,21 @@ def version_of(jar):
     with zipfile.ZipFile(jar) as z:
         if 'version.json' in z.namelist():return json.loads(z.read('version.json'))
     return {}
-def create(version,base,port=25567,rcon=25587,source=None,eula_source=None):
+def require_eula(path):
+    path=Path(path).expanduser()
+    if not path.is_file() or not re.search(r'^\s*eula\s*=\s*true\s*$',path.read_text(),re.M):
+        raise ValueError('服务器缺少既有EULA接受记录：'+str(path)+'。请自行阅读 https://aka.ms/MinecraftEULA 后配置；脚本不会代为接受。')
+    return path
+def write_wrappers(folder,key):
+    import shlex
+    for action in ('start','stop'):
+        script=Path(folder)/(action+'.sh');script.write_text('#!/usr/bin/env bash\nset -euo pipefail\nexec python3 '+shlex.quote(str(ROOT/'scripts/vanilla_servers.py'))+' '+action+' '+shlex.quote(key)+'\n');script.chmod(0o755)
+def create(version,base,port=25567,rcon=25587,source=None,eula_source=None,java=None):
     if not re.fullmatch(r'[A-Za-z0-9_.-]+',version) or version in ('.','..'):raise ValueError('版本号无效')
     if not(1<=port<=65535 and 1<=rcon<=65535) or port==rcon:raise ValueError('端口无效')
     base=Path(base).expanduser().resolve();folder=base/('vanilla-'+version)
     if folder.exists():raise ValueError('目录已存在，不覆盖：'+str(folder))
+    if eula_source:eula_source=require_eula(eula_source)
     metadata=None
     if source:
         source=Path(source).expanduser().resolve();found=version_of(source)
@@ -50,38 +60,48 @@ def create(version,base,port=25567,rcon=25587,source=None,eula_source=None):
             metadata=fetch_json(entry['url'])
         if 'server' not in metadata['downloads']:raise ValueError('此版本无官方服务器下载')
     # All validation before creating the destination; an existing server is never touched.
-    folder.mkdir(parents=True)
+    destination=folder;folder=base/('.vanilla-'+version+'.installing');marker=folder/'install-state.json'
+    if folder.exists() and (not marker.is_file() or json.loads(marker.read_text()).get('version')!=version):raise ValueError('安装临时目录不属于此版本，保留原文件：'+str(folder))
+    folder.mkdir(parents=True,exist_ok=True);marker.write_text(json.dumps({'version':version}))
     if source:shutil.copy2(source,folder/'server.jar')
     else:
         item=metadata['downloads']['server'];download(item['url'],folder/'server.jar',item['sha1'])
         (folder/'official-version.json').write_text(json.dumps(metadata,indent=2))
     if eula_source:
-        eula_source=Path(eula_source).expanduser()
-        if not re.search(r'^eula=true\s*$',eula_source.read_text(),re.M):raise ValueError('源EULA文件没有既有接受记录')
         shutil.copy2(eula_source,folder/'eula.txt')
     password=secrets.token_hex(32)
     values={'server-ip':'127.0.0.1','server-port':str(port),'enable-rcon':'true','rcon.port':str(rcon),'rcon.password':password,
             'online-mode':'false','level-name':'test-world','difficulty':'peaceful' if version!='1.7.10' else '0',
             'view-distance':'8','simulation-distance':'8','max-players':'4','spawn-protection':'0','motd':'Isolated compatibility test '+version}
     p=folder/'server.properties';p.write_text('\n'.join(k+'='+v for k,v in values.items())+'\n');p.chmod(0o600)
-    item={'version':version,'directory':str(folder),'port':port,'rcon_port':rcon,'java':local_environment.java(),
+    folder.rename(destination);folder=destination
+    major={'1.7.10':8,'1.20.1':17,'1.21.1':21,'26.3':25}.get(version)
+    runtime=ROOT/'instances/java'/str(major)/'bin/java'
+    if not java:
+        import instance_config
+        configured=instance_config.settings()['instances'].get('vanilla-'+version.replace('.','-'),{}).get('java')
+        java=str(runtime) if runtime.exists() else str(instance_config.path(configured)) if configured else local_environment.java()
+    item={'version':version,'directory':str(folder),'port':port,'rcon_port':rcon,'java':java,
           'server_sha256':digest(folder/'server.jar'),'memory':{'min':'1G','max':'4G'},'created_at':time.time()}
     values=registry();key=version
     if key in values:key=version+'-'+str(int(time.time()))
     values[key]=item;tmp=REGISTRY.with_suffix('.tmp');tmp.write_text(json.dumps(values,indent=2));tmp.chmod(0o600);tmp.replace(REGISTRY)
     # Small local wrappers refer back to the project manager; backup restore notes describe rebinding.
-    import shlex
-    for action in ('start','stop'):
-        script=folder/(action+'.sh');script.write_text('#!/usr/bin/env bash\nset -euo pipefail\nexec python3 '+shlex.quote(str(ROOT/'scripts/vanilla_servers.py'))+' '+action+' '+shlex.quote(key)+'\n');script.chmod(0o755)
+    write_wrappers(folder,key)
     (folder/'README.txt').write_text('独立原版服务器 '+version+'\n此服务器能启动不代表AI客户端已支持本版本。\n仅监听本机；离线测试。已有EULA接受记录仅在显式指定源文件时复制。\n')
     print(json.dumps({'key':key,**item},ensure_ascii=False,indent=2));return key
 
 def owned(item):
-    folder=Path(item['directory']);p=folder/'server.pid'
-    try:
-        pid=int(p.read_text());proc=Path('/proc')/str(pid);args=(proc/'cmdline').read_bytes().decode().split('\0')
-        if (proc/'cwd').resolve()==folder and Path(args[0]).name=='java' and '-jar' in args and args.index('-jar')+1<len(args) and args[args.index('-jar')+1]=='server.jar':return pid
-    except (OSError,ValueError):pass
+    import manage
+    folder=Path(item['directory']).resolve();p=folder/'server.pid'
+    try:candidates=[int(p.read_text())]
+    except (OSError,ValueError):candidates=[]
+    candidates.extend(int(p.name) for p in Path('/proc').iterdir() if p.name.isdigit() and int(p.name) not in candidates)
+    for pid in candidates:
+        info=manage.inspect(pid)
+        if not info:continue
+        args,cwd=info
+        if cwd==folder and Path(args[0]).name=='java' and '-jar' in args and args.index('-jar')+1<len(args) and args[args.index('-jar')+1]=='server.jar':return pid
     return None
 
 def command(item,text):
@@ -89,8 +109,7 @@ def command(item,text):
 def start(key):
     item=registry()[key];folder=Path(item['directory'])
     if owned(item):print('已运行：'+key);return
-    if not (folder/'eula.txt').exists() or not re.search(r'^eula=true\s*$',(folder/'eula.txt').read_text(),re.M):
-        raise ValueError('此测试服尚无EULA接受记录；请提供你已接受的eula.txt，或自行阅读官方条款后配置')
+    require_eula(folder/'eula.txt')
     for port in (item['port'],item['rcon_port']):
         with socket.socket() as sock:sock.bind(('127.0.0.1',port))
     fifo=folder/'console.fifo'
@@ -116,18 +135,38 @@ def start(key):
             (folder/'validation.json').write_text(json.dumps(result,indent=2));print(json.dumps(result,ensure_ascii=False,indent=2));return result
         except (OSError,ConnectionError):time.sleep(.5)
     raise TimeoutError('服务器命令接口等待超时')
-def stop(key):
+def stop(key,force=False):
     item=registry()[key];pid=owned(item)
     if not pid:return
-    folder=Path(item['directory']);fd=os.open(folder/'console.fifo',os.O_WRONLY|os.O_NONBLOCK)
-    try:os.write(fd,b'save-all\nstop\n')
-    finally:os.close(fd)
+    folder=Path(item['directory'])
+    def terminate(sig):
+        current=owned(item)
+        if current!=pid:return
+        try:
+            if os.getpgid(pid)==pid:os.killpg(pid,sig)
+            else:os.kill(pid,sig)
+        except ProcessLookupError:pass
+    try:
+        fd=os.open(folder/'console.fifo',os.O_WRONLY|os.O_NONBLOCK)
+        try:os.write(fd,b'save-all\nstop\n')
+        finally:os.close(fd)
+    except OSError:terminate(signal.SIGTERM)
     deadline=time.monotonic()+90
     while owned(item) and time.monotonic()<deadline:time.sleep(.2)
+    if owned(item):
+        terminate(signal.SIGTERM);deadline=time.monotonic()+30
+        while owned(item) and time.monotonic()<deadline:time.sleep(.2)
+    if owned(item) and force:
+        terminate(signal.SIGKILL);deadline=time.monotonic()+5
+        while owned(item) and time.monotonic()<deadline:time.sleep(.2)
     if owned(item):raise RuntimeError('仍在保存，保留进程：'+key)
     (folder/'server.pid').unlink(missing_ok=True);print('已保存并停止：'+key)
-def stop_all():
-    for key in registry():stop(key)
+def stop_all(force=False):
+    errors=[]
+    for key in registry():
+        try:stop(key,force)
+        except Exception as exc:errors.append(key+': '+str(exc))
+    if errors:raise RuntimeError('\n'.join(errors))
 def main():
     p=argparse.ArgumentParser();p.add_argument('action',choices=['create','list','start','stop','stop-all']);p.add_argument('version',nargs='?');p.add_argument('--base',default=str(Path.home()/'Desktop/MC26.3/tests'));p.add_argument('--port',type=int,default=25567);p.add_argument('--rcon-port',type=int,default=25587);p.add_argument('--source');p.add_argument('--eula-source');a=p.parse_args()
     if a.action=='list':

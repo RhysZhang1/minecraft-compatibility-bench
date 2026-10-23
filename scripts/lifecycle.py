@@ -81,6 +81,9 @@ def preflight():
     if not client.is_dir() or (instance_config.managed() and not server.is_dir()):
         if manage.owned('client') or manage.owned('server'):raise RuntimeError('实例不完整，请先完全停止后再初始化')
         say('首次准备独立测试副本…');run([sys.executable,ROOT/'scripts/prepare_instances.py'])
+    if instance_config.managed():
+        from vanilla_servers import require_eula
+        require_eula(server/'eula.txt')
     python=ROOT/'.venv/bin/python'
     if not python.exists():
         uv=shutil.which('uv')
@@ -164,7 +167,9 @@ def wait_ready(label,check,roles,timeout):
     raise TimeoutError(label+'就绪超时。'+last_error)
 
 def shutdown(force=False,only=None):
-    errors=[];save_control(False)
+    errors=[]
+    try:save_control(False)
+    except Exception as exc:say('无法写入暂停状态，继续停止进程：'+str(exc))
     if manage.owned('monitor') and (only is None or 'monitor' in only):
         try:
             http(URL+'/api/memory/checkpoint',{},timeout=8);say('续玩笔记已保存。')
@@ -176,7 +181,7 @@ def shutdown(force=False,only=None):
         except Exception as exc:errors.append(str(exc))
     if only is None:
         import vanilla_servers
-        try:vanilla_servers.stop_all()
+        try:vanilla_servers.stop_all(force)
         except Exception as exc:errors.append(str(exc))
     return errors
 

@@ -52,12 +52,24 @@ def owned(name):
     pids=owned_pids(name)
     return pids[0] if pids else None
 
+def service_pids(name):
+    pids=owned_pids(name)
+    if name=='display' and pids:
+        # The compositor intentionally launches a second copy in "publish" mode.
+        # Treat that worker as part of the same service, not a duplicate start.
+        roles={pid:inspect(pid)[0][2] for pid in pids if inspect(pid) and len(inspect(pid)[0])>2}
+        leaders=[pid for pid,role in roles.items() if role=='serve']
+        # KWin starts application workers in their own session; their PGID differs.
+        if len(leaders)==1 and len(pids)<=2 and len(roles)==len(pids) and all(role in ('serve','publish') for role in roles.values()):pids=leaders
+        else:raise RuntimeError('独立显示会话的主进程/工作进程不完整，请先运行 stop.sh 完整停止')
+    return pids
+
 def start(name,profile='balanced'):
     from game_config import config as game_config
     game=game_config()
     conf=instance_config.config();server=conf['server']
     if name=='server' and not server.get('managed'):return False
-    pids=owned_pids(name)
+    pids=service_pids(name)
     if len(pids)>1:raise RuntimeError(f'{name} 有多个本项目进程，请先运行 stop.sh 完整停止')
     if pids:
         (ROOT/f'runtime/{name}.pid').write_text(str(pids[0]));return False
@@ -91,7 +103,9 @@ def signal_owned(name,pid,sig):
     info=inspect(pid)
     if not info or not matches(name,*info):return
     try:
-        if os.getpgid(pid)==pid:os.killpg(pid,sig)
+        group=os.getpgid(pid)
+        private_display_group=name=='display' and group!=os.getpgrp() and os.getsid(pid)==group
+        if group==pid or private_display_group:os.killpg(group,sig)
         else:os.kill(pid,sig)
     except ProcessLookupError:pass
 

@@ -1,6 +1,6 @@
 """Interactive, project-local setup. Inspection never downloads or changes model."""
 from pathlib import Path
-import argparse,hashlib,json,os,shutil,subprocess,sys
+import argparse,hashlib,json,os,shutil,subprocess,sys,ctypes.util,platform
 ROOT=Path(__file__).resolve().parents[1];sys.path.insert(0,str(ROOT/'src'))
 import instance_config as ic,local_environment as env,model_config
 PYTHON=ROOT/'.venv/bin/python'
@@ -30,11 +30,16 @@ def environment():
     if yes('准备只读状态采集器的ASM编译依赖？'):run([sys.executable,ROOT/'scripts/download_sdk.py'])
 
 def doctor(full=False):
-    result={'instance':ic.selected(),'backend':ic.config()['backend'],'selected_model':model_config.selected(),'paths':{},'tools':{},'models':{}}
-    for name,value in [('java',env.java()),('llama_server',env.llama_server()),('llama_source',env.llama_source()),('client',ic.client_directory()),('server',ic.server_directory()),('libraries',ic.library_root()/'libraries')]:
+    result={'system':platform.system(),'architecture':platform.machine(),'instance':ic.selected(),'backend':ic.config()['backend'],'selected_model':model_config.selected(),'paths':{},'tools':{},'models':{}}
+    for name,value in [('java',ic.java()),('llama_server',env.llama_server()),('llama_source',env.llama_source()),('client',ic.client_directory()),('server',ic.server_directory()),('libraries',ic.library_root()/'libraries')]:
         result['paths'][name]={'path':str(value),'exists':Path(value).exists()}
     for tool in ['python3','uv','javac','jar','zstd','git','cmake','ninja','nvcc','nvidia-smi','kwin_wayland','Xwayland','dbus-run-session','cc','pkg-config']:
         result['tools'][tool]=shutil.which(tool)
+    result['native_libraries']={name:ctypes.util.find_library(name) for name in ('X11','ei','dbus-1','GL')}
+    result['python_environment']={'exists':PYTHON.exists()}
+    if PYTHON.exists():
+        p=subprocess.run([str(PYTHON),'-c','import PIL,requests,psutil,jinja2'],capture_output=True,text=True)
+        result['python_environment'].update(imports_ok=p.returncode==0,error=p.stderr.strip())
     for key in model_config.settings()['models']:
         conf=model_config.config(key);files={}
         for path,digest in model_config.expected(conf).items():
@@ -65,19 +70,28 @@ def models():
         model_config.select(key)
 
 def vanilla():
+    import instances
+    instances.idle()
     version=prompt('版本（1.7.10 / 1.20.1 / 1.21.1 / 26.3）','1.21.1')
     if version not in ('1.7.10','1.20.1','1.21.1','26.3'):raise ValueError('此版本尚未进入本机测试清单，请先查看docs/PORTABILITY.md')
     key='vanilla-'+version.replace('.','-');major={'1.7.10':8,'1.20.1':17,'1.21.1':21,'26.3':25}[version]
     base=prompt('独立服务器目录的父目录',ROOT/'instances/vanilla-servers')
     port=int(prompt('游戏端口',{'1.7.10':25566,'1.20.1':25569,'1.21.1':25568,'26.3':25567}[version]));rcon=int(prompt('本地命令端口',port+20))
     eula=prompt('已有接受记录的eula.txt路径（可留空，之后由你阅读条款并配置）')
+    import vanilla_servers as vs
+    if version in vs.registry():
+        existing=vs.registry()[version]
+        print('已登记服务器：'+existing['directory']+'；端口 '+str(existing['port'])+'。保留原世界，不使用新目录/端口。')
+        if not yes('复用该服务器并补齐官方客户端/Java？'):return
     print('将下载官方客户端/库/资源/服务器/Java，仅在项目及上面的服务器父目录内写入；不读取账号。')
     if not yes('开始安装？'):return
     run([sys.executable,ROOT/'scripts/install_vanilla_client.py',version]);run([sys.executable,ROOT/'scripts/install_java.py',major])
-    import vanilla_servers as vs
-    if version not in vs.registry():vs.create(version,base,port,rcon,eula_source=eula or None)
+    runtime=str(ROOT/'instances/java'/str(major)/'bin/java')
+    if version not in vs.registry():vs.create(version,base,port,rcon,eula_source=eula or None,java=runtime)
     item=vs.registry()[version];profile=ic.settings()['instances'][key]
+    if eula and not (Path(item['directory'])/'eula.txt').exists():shutil.copy2(vs.require_eula(eula),Path(item['directory'])/'eula.txt')
     profile['server']['directory']=item['directory'];profile['connection']['port']=item['port'];profile['server']['rcon_port']=item['rcon_port'];profile['java']='instances/java/'+str(major)+'/bin/java'
+    values=vs.registry();values[version]['java']=str(ROOT/profile['java']);vs.REGISTRY.write_text(json.dumps(values,indent=2));vs.REGISTRY.chmod(0o600)
     p=ROOT/'local-instances.json';data=json.loads(p.read_text()) if p.exists() else {'instances':{}}
     data['instances'][key]=profile;p.write_text(json.dumps(data,ensure_ascii=False,indent=2));p.chmod(0o600)
     print('安装完成：./start.sh --instance '+key+' --paused')

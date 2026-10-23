@@ -1,4 +1,6 @@
-# Minecraft × GameScaling 本地兼容层
+# Minecraft GameScaling Agent
+
+[安装与排障](docs/INSTALL.md) · [适配范围](docs/PORTABILITY.md) · [基础验收](docs/VANILLA-VALIDATION.md) · [发布前审查](docs/RELEASE-CHECKS.md)
 
 以原版 Minecraft 为基线，把视觉模型接到真实游戏客户端。模型只根据画面和观测生成动作；兼容层负责后台输入、截图、动作确认、反馈、记忆与启停。
 
@@ -29,7 +31,7 @@
 
 ## 在另一台机器准备
 
-入口是交互式向导：
+从零安装的顺序、依赖、EULA、恢复和常见错误请先看 **[完整安装说明](docs/INSTALL.md)**。入口是交互式向导：
 
 ```bash
 ./setup.sh
@@ -82,7 +84,7 @@
 
 `PRIVATE-minecraft-agent-full-*.tar.zst` 是私有完整快照：全部模型、世界与角色、记忆、动作截图/日志、本地路径配置、Python环境，以及登记的外部游戏资源、Java和llama.cpp。还包含桌面MC26.3下登记的测试服。该包保留私有数据，不作为GitHub源码上传。校验清单记录每个归档的大小和SHA256。
 
-完整包解压到新目录后可运行 `python3 scripts/restore_private.py --rebind` 重绑定路径，再通过向导检测。恢复仍依赖本机系统图形驱动/KWin/libei；离线恢复与公开源码重新安装是不同流程。目前没有向GitHub发布任何内容。
+完整包解压到新目录后可运行 `python3 scripts/restore_private.py --rebind` 重绑定路径，再通过向导检测。恢复仍依赖本机系统图形驱动/KWin/libei；离线恢复与公开源码重新安装是不同流程。公开仓库只包含源码、配置模板和文档；模型、存档、私人笔记及运行日志均保留在本地。
 
 ## 来源
 
