@@ -1,0 +1,39 @@
+[build-system]
+requires = ["setuptools>=77"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "minecraft-compatibility-bench"
+version = "0.3.0"
+description = "Minecraft pixel-action compatibility layer and offline replay bench"
+requires-python = ">=3.11"
+license = "GPL-3.0-or-later"
+license-files = ["LICENSE", "LICENSING.md", "THIRD_PARTY_NOTICES/*", "vendor/GameScaling/LICENSE"]
+dependencies = ["Pillow==13.0.0", "requests==2.34.2", "psutil==7.2.2", "Jinja2==3.1.6"]
+
+[project.optional-dependencies]
+dev = ["ruff==0.17.2", "build==1.6.1"]
+hub = ["huggingface-hub==2.2.0"]
+
+[project.urls]
+Repository = "https://github.com/RhysZhang1/minecraft-compatibility-bench"
+Documentation = "https://github.com/RhysZhang1/minecraft-compatibility-bench/blob/main/README.md"
+
+[project.scripts]
+mcbench = "mcbench.cli:main"
+
+[tool.setuptools]
+packages = ["mcbench", "mcbench.tools", "gamescaling"]
+package-dir = {gamescaling = "vendor/GameScaling/gamescaling"}
+
+[tool.ruff]
+target-version = "py311"
+line-length = 100
+exclude = ["vendor", "runtime", "backups", "instances", "models", ".venv", "research"]
+
+[tool.ruff.lint]
+select = ["E4", "E7", "E9", "F", "I"]
+
+
+[tool.setuptools.package-data]
+mcbench = ["py.typed"]

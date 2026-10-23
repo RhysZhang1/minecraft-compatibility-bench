@@ -1,6 +1,6 @@
 # Licensing
 
-The original code written for Minecraft GameScaling Agent is licensed under the **GNU General Public License, version 3 or (at your option) any later version** (`GPL-3.0-or-later`). See the root `LICENSE` for the full GPL text.
+The original code written for Minecraft Compatibility Bench is licensed under the **GNU General Public License, version 3 or (at your option) any later version** (`GPL-3.0-or-later`). See the root `LICENSE` for the full GPL text.
 
 This applies to the project's own compatibility layer, Python and shell tooling, Java agents, native input bridge, tests, configuration templates, and dashboard, except where a file or third-party component carries a separate notice.
 
@@ -8,6 +8,8 @@ The GPL notice does **not** replace the licenses or copyright notices of third-p
 
 | Material | Original terms / location |
 |---|---|
+| `tests/fixtures/protocol/chat_template.jinja` | Apache-2.0 upstream checkpoint template; see `tests/fixtures/README.en.md` |
+| Sanitized Minecraft frame fixtures | Applicable upstream game-content terms; no relicensing of Minecraft |
 | `vendor/GameScaling/` | Apache-2.0; see `vendor/GameScaling/LICENSE` and `UPSTREAM.md` |
 | ASM classes used by the Java agents | BSD-3-Clause; see `THIRD_PARTY_NOTICES/ASM-BSD-3-Clause.txt` |
 | libei linked by the native input bridge | MIT; see `THIRD_PARTY_NOTICES/libei-MIT.txt` |

@@ -1,5 +1,7 @@
 # 给只有MC服务端的电脑添加AI
 
+[English](SERVER-DEPLOYMENT.en.md)
+
 目标是由向导完成“检测 → 资源推荐 → 选择接入 → 环境准备 → 独立记忆 → 暂停启动”。MC视觉客户端仍需在后台运行，详见HEADLESS.md。
 
 ## 只读检测

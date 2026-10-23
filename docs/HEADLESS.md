@@ -1,5 +1,7 @@
 # 没有桌面环境的服务器
 
+[English](HEADLESS.en.md)
+
 本项目的 `virtual-x11` 通道不需要物理显示器或已登录的桌面。启动脚本自行创建 KWin 虚拟输出、私有 D-Bus 与 Xwayland；不依赖桌面已有的DISPLAY/WAYLAND_DISPLAY，也不要求完整Plasma桌面或显示管理器。
 
 但它仍然要渲染**真实Minecraft客户端**：服务端、客户端和模型是三个不同进程。只有Java服务端的精简系统，需要补齐后台图形组件后才可运行视觉AI。

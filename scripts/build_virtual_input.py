@@ -1,9 +1,14 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
-"""Build Linux private-display input sender using standard libei and D-Bus SDKs."""
-from pathlib import Path
-import subprocess
-ROOT=Path(__file__).resolve().parents[1]
-flags=subprocess.check_output(['pkg-config','--cflags','--libs','dbus-1','libei-1.0'],text=True).split()
-subprocess.run(['cc','-shared','-fPIC','-O2',str(ROOT/'input/ei.c'),'-o',str(ROOT/'input/libgamescaling-ei.build.so'),*flags],check=True)
+"""Backward-compatible workspace launcher; implementation lives in mcbench.tools."""
 
-(ROOT/'input/libgamescaling-ei.build.so').replace(ROOT/'input/libgamescaling-ei.so')
+import os
+import sys
+from pathlib import Path
+
+if __name__ == "__main__":
+    workspace = Path(__file__).resolve().parents[1]
+    os.environ["MCBENCH_WORKSPACE"] = str(workspace)
+    os.chdir(workspace)
+    os.execv(
+        sys.executable, [sys.executable, "-m", "mcbench.tools.build_virtual_input", *sys.argv[1:]]
+    )

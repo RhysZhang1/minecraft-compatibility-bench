@@ -1,71 +1,86 @@
-# Minecraft GameScaling Agent
+# Minecraft Compatibility Bench
 
-让 GameScaling 视觉模型作为玩家连接真实 Minecraft 服务器。提供后台键鼠隔离、游戏预览、动作反馈、服务器检测、模型推荐、部署向导和按世界保存的文档记忆。
+[简体中文](README.zh-CN.md) · [Install](docs/INSTALL.en.md) · [Existing servers](docs/SERVER-DEPLOYMENT.en.md) · [Headless requirements](docs/HEADLESS.en.md) · [Compatibility](docs/PORTABILITY.en.md) · [WSL status](docs/WSL.en.md)
 
-[安装与排障](docs/INSTALL.md) · [已有服务器部署](docs/SERVER-DEPLOYMENT.md) · [无桌面运行条件](docs/HEADLESS.md) · [版本范围](docs/PORTABILITY.md) · [WSL状态](docs/WSL.md)
+A pixel-action compatibility layer and evaluation bench for real Minecraft clients. The current model adapter uses GameScaling with llama.cpp. This project provides isolated input, observations, lifecycle management and reproducible behavioral regressions; model capabilities and limitations belong to the upstream checkpoints.
 
-## 能在没有桌面环境的服务器上运行吗？
+## Can it run on a server without a desktop?
 
-**可以在无显示器、没有登录桌面会话的 Linux x86_64 服务器上运行，但必须安装后台图形运行组件。** 不要求安装完整桌面、桌面面板或显示管理器。
+**A monitor and a logged-in desktop session are not required on Linux x86_64, but background graphics components are required.** A hidden Minecraft client renders the model's observations. A Java server alone cannot supply those images.
 
-模型通过真实客户端画面操作游戏，因此运行时仍然需要一个隐藏的 MC 客户端。仅有 Java 和 MC 服务端还不够：
-
-| 环境 | 用途 |
+| Requirement | Purpose |
 |---|---|
-| KWin 6（需具备RemoteDesktop/libei接口）、Xwayland、D-Bus、libei、libX11 | 建立私有后台显示与输入通道 |
-| 可用的 OpenGL 驱动，或兼容的 Mesa 软件渲染 | 绘制客户端；没有显示器也需要渲染能力 |
-| Python、JDK、C/C++编译工具、pkg-config | 运行兼容层，构建状态采集和输入组件 |
-| 对应版本的 Java、MC 客户端及游戏资源 | 让 AI 作为玩家连接服务器 |
-| llama.cpp 与模型文件；GPU推理另需兼容CUDA环境 | 运行视觉模型；也可选择CPU推理 |
+| KWin 6 with RemoteDesktop/libei support, Xwayland, D-Bus, libei, libX11 | Private display and isolated input |
+| Working OpenGL driver, or a compatible Mesa software renderer | Render the hidden client |
+| Python 3.11+, JDK, C/C++ tools, pkg-config, development headers | Run and build the compatibility components |
+| Matching Minecraft client, assets and Java runtime | Connect to the selected server |
+| llama.cpp and model files; compatible CUDA for GPU inference | Run the visual model; CPU inference is also available |
 
-软件渲染和CPU模型可能很慢，实际可用性以启动检查和真实客户端画面为准。WSL2、Windows原生和其他发行版组合不能由本机Linux测试直接推定支持。详见[无桌面部署说明](docs/HEADLESS.md)。
+Software rendering and CPU inference can be slow. Local acceptance cleared desktop session variables on a machine with graphics packages already installed; it was **not** a fresh minimal-server installation test. WSL2 and native Windows are not validated. See [headless deployment](docs/HEADLESS.en.md).
 
-## 给已有服务器添加 AI
+## Add a model-controlled client to an existing server
 
 ```bash
-git clone https://github.com/RhysZhang1/minecraft-gamescaling-agent.git
-cd minecraft-gamescaling-agent
+git clone https://github.com/RhysZhang1/minecraft-compatibility-bench.git
+cd minecraft-compatibility-bench
 
-# 先只读检测硬件、服务器配置与推荐方案
-./setup.sh --inspect-server /你的服务器目录
+# Read-only inspection and resource recommendation
+./setup.sh --inspect-server /path/to/server
 
-# 交互式确认方案并部署
-./setup.sh --server-dir /你的服务器目录
+# Interactive deployment
+./setup.sh --server-dir /path/to/server
 ```
 
-向导会检测内存、可用显存、工具与运行库、游戏版本、服务端类型、端口、认证、白名单和资源设置。预留原服、客户端与系统资源后，在当前可自动准备的2B/9B模型中推荐运行方式；推荐是保守估算，不是性能承诺。
+The wizard inspects hardware, memory limits, free VRAM, game version, loader, ports, authentication, whitelist and heap settings. It reserves resources for the server, client and system before recommending a supported 2B/9B configuration. Recommendations are estimates, not speed or stability guarantees.
 
-确认后准备项目内Python、llama.cpp、匹配客户端/Java、模型和独立记忆。缺失系统依赖时，先展示软件包安装范围，再由使用者选择执行；不安装显卡驱动，不自动升级发行版。
+After confirmation it prepares a project-local Python environment, llama.cpp, a matching client/Java runtime, model files and per-world notes. Missing system dependencies are shown before installation is offered; the wizard does not replace graphics drivers or upgrade the distribution.
 
-默认只连接已有服务器，不改原服文件、不接管原服进程。也可在原服停止后创建独立托管副本。整合包需要匹配客户端；在线认证尚未接入，工具不会自动关闭认证。检测与部署细节见[服务器部署指南](docs/SERVER-DEPLOYMENT.md)。
+The default connection mode leaves the existing server's files and process under its existing management. A separate managed copy can be prepared after stopping the source server. Modded servers need matching clients. Online account authentication is not implemented, and the wizard does not disable it.
 
-## 启动、观察与停止
+## Start, observe and stop
 
 ```bash
-./start.sh --instance 你的实例ID --paused --no-open
+./start.sh --instance YOUR_INSTANCE --paused --no-open
 ./stop.sh
 ```
 
-观察台：<http://127.0.0.1:8790/>。它显示实际画面、模型真实输出、动作反馈和续玩记忆，可暂停/恢复AI。接入原服时保留原服设置；托管测试副本才默认应用和平和死亡不掉落。
+Open <http://127.0.0.1:8790/> for live frames, actual model output, actions, feedback and editable continuation notes. Only managed test copies receive default peaceful/keep-inventory settings. External servers retain their settings and do not expose a management console through this tool.
 
-在另一台电脑查看时可使用SSH转发：
+For remote viewing, forward the loopback dashboard:
 
 ```bash
-ssh -N -L 8790:127.0.0.1:8790 用户名@服务器地址
+ssh -N -L 8790:127.0.0.1:8790 USER@SERVER
 ```
 
-然后在自己的浏览器打开上面的本地地址。观察台默认仅监听回环地址，不直接暴露到公网。
+The saved instance controls model placement. `--profile cpu` explicitly selects CPU inference; stop before changing an active model or placement. Stopping saves notes and shuts down owned components. In connection-only mode, the original server remains running.
 
-`start.sh` 会使用所选实例保存的模型与CPU/GPU建议。`--profile cpu` 可显式改为CPU推理；切换已运行模型/模式前先停止。`stop.sh` 保存AI记忆并停止本项目进程；仅接入模式下，原服务器继续由原有方式运行。
+A fresh clone has **no selected instance**. `instance-settings.json` contains templates with `${PLACEHOLDERS}` and `_comment` explanations. The wizard writes resolved paths to ignored `local-instances.json`. Unfilled templates fail with setup instructions. See [configuration](docs/CONFIGURATION.en.md).
 
-## 记忆与已验证范围
+## Persistence and validated scope
 
-同一实例保持固定角色名和离线UUID，物品与位置由对应服务器保存。目标、长期笔记和整理建议写入独立世界的文档；重启读取这些文档，不声称模型进程中的上下文本身跨进程保留。已确认事实与模型建议分别标注。
+A stable player name/offline UUID allows the server to retain inventory and position. Per-world documents retain goals, observed facts, user notes and explicitly unverified model suggestions. Model process context itself does not survive shutdown.
 
-本机已验证原版 **1.7.10、1.20.1、1.21.1、26.3** 的移动、背包、持续挖掘/拾取及暂停释放。支持后台运行不代表模型能完成复杂合成、任意模组任务或长期规划。[基础验收](docs/VANILLA-VALIDATION.md)、[发布检查](docs/RELEASE-CHECKS.md)。
+Local basic-operation acceptance covers vanilla **1.7.10, 1.20.1, 1.21.1 and 26.3**: movement, inventory, sustained mining/pickup and pause release. This does not establish complex crafting, arbitrary mod support or long-horizon task ability. See [recorded validation](docs/VANILLA-VALIDATION.en.md) and [release checks](docs/RELEASE-CHECKS.en.md).
 
-## 许可与来源
+## Develop and replay offline
 
-本项目自行编写的兼容层、工具与界面采用 **GPL-3.0-or-later**，见 [LICENSE](LICENSE) 与[许可范围](LICENSING.md)。第三方代码、依赖、模型和游戏资源保留各自原许可：包括 `vendor/GameScaling` 的 Apache-2.0、ASM 的 BSD-3-Clause、libei 的 MIT。模型权重与Minecraft文件不随源码发布。
+```bash
+python3 -m venv .venv
+.venv/bin/pip install -e '.[dev]'
+.venv/bin/python -m unittest discover -s tests -v
+.venv/bin/mcbench replay tests/fixtures/golden/replay.json
+.venv/bin/ruff check mcbench scripts tests
+.venv/bin/ruff format --check mcbench scripts tests
+```
 
-上游：[GameScaling](https://gamescaling.github.io/) · [模型](https://huggingface.co/THUSI-Lab/GameScaling) · [论文](https://arxiv.org/abs/2610.28698) · [llama.cpp](https://github.com/ggml-org/llama.cpp)。
+The standard Python package is `mcbench/`: `loop` coordinates decisions, `prompt` formats checkpoint inputs, `feedback` compares observations, and `http` serves the local dashboard. An explicitly constructed `Runtime` owns mutable state; importing runtime modules starts no processes or reads an instance. Workspace scripts are compatibility launchers, with implementations in `mcbench/tools/`.
+
+Golden fixtures contain sanitized real input frames and raw outputs, plus clearly labeled authored safety cases. Replay checks actions, feedback and recovery without GPU, X11, model downloads or inference. It detects changes in adapter behavior, not changes in model intelligence. Wheels can run replay outside the source checkout; live tools also require a source workspace containing Java/native sources and configuration.
+
+[Contributor guide](docs/CONTRIBUTING.en.md) · [Fixture provenance](tests/fixtures/README.en.md).
+
+## License and upstream
+
+Original compatibility code, tools and dashboard use **GPL-3.0-or-later**; see [LICENSE](LICENSE) and [licensing scope](LICENSING.md). Third-party material retains its original terms, including vendored GameScaling (Apache-2.0), ASM (BSD-3-Clause), libei (MIT), and the checkpoint template fixture (Apache-2.0). Model weights and Minecraft runtime files are not distributed.
+
+[GameScaling](https://gamescaling.github.io/) · [Models](https://huggingface.co/THUSI-Lab/GameScaling) · [Paper](https://arxiv.org/abs/2610.28698) · [llama.cpp](https://github.com/ggml-org/llama.cpp).

@@ -1,5 +1,7 @@
 # 发布前审查（2026-10-23）
 
+[English](RELEASE-CHECKS.en.md)
+
 本次审查以从GitHub克隆后的安装流程为目标；模型配置和已验证的四个原版版本保持不变。
 
 ## 修复内容
@@ -38,3 +40,17 @@ CI只验证源码、依赖、语法和自动化测试，不在GitHub运行器上
 - README聚焦通用服务器流程与无桌面所需组件。项目自行编写的代码改为GPL-3.0-or-later；vendor与第三方许可文件不变。历史发行版保留原有许可。
 
 私有证据：runtime/validation/server-onboarding.json、server-onboarding-dashboard.png、attached-stop.log、attached-restart.log与logs/server-onboarding-wizard.log；检测和配置日志不公开上传。
+
+## v0.3 标准打包、配置模板与离线回归
+
+- `pyproject.toml` 提供标准包、依赖、开发工具与 mcbench 入口；自有代码不再修改 sys.path。停止仍可使用系统 Python。
+- 监控拆为 loop/prompt/feedback/http，Runtime 显式持有状态并组合服务。推理流、动作后观测和记忆整理分为独立方法；核心接口补充类型与英文说明，自有 Python 统一格式检查。
+- 公开实例文件只保留占位模板与 `_comment` 说明，新克隆无选中实例。本机路径、角色与 world_id 已迁入忽略上传的本地配置。未填项会给出向导入口。
+- **76 项自动化测试通过**；Python 3.11 本机运行，以及独立 Python 3.13 wheel 环境在源码目录外运行均通过，无跳过。官方协议模板作为保留 Apache-2.0 的固定素材，不再依赖模型目录。
+- **37 张脱敏真实画面、50 个 golden 用例、300 项固定比对通过**，包含动作、反馈、执行门槛和恢复决策。历史素材采用相邻输入观测并明确说明限制；新增 1.20.1 用例含准确动作后画面。人为取消、截断与界面循环用例单独标记。
+- 未配置的干净目录中 doctor 正常返回待配置状态，启动给出 setup.sh 指引；独立 wheel 可从其他目录运行离线回放。CI 同时检查源码与 wheel，零 GPU/X11、无游戏或模型下载。
+- 最终代码真实启动原版 1.20.1 隐藏客户端、服务器与现有 2B；短测 8 个输出解析成功，7 个完成确认且保存准确动作后截图，暂停时的在途包未算完成；无闭环异常，输入隔离、隐藏窗口及暂停释放通过。没有据此声称模型学会复活或完成任务。
+- 旧提示词迁移保留原文且不覆盖新文件；备份恢复补充可编辑安装 finder 的路径重绑定（含引号路径），完整快照包含项目内引擎。
+- 仓库改名 minecraft-compatibility-bench，文档提供中英文版本，第三方源码和原许可保留。完整私有数据不上传。
+
+本次私有执行证据：runtime/validation/refactor-v030-live.json、logs/refactor-final-start.log、logs/refactor-stop.log，以及运行/干净目录测试日志。四版本旧验收未在本次全部重跑，WSL与全新最小系统仍未验证。

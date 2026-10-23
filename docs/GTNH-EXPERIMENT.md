@@ -1,6 +1,10 @@
 # GameScaling × GT New Horizons 本地实验
 
+[English](GTNH-EXPERIMENT.en.md)
+
 将论文 GameScaling 的 Minecraft 操作策略接入 GTNH 2.8.4 / Minecraft 1.7.10。
+
+> 这是早期本机实验记录。当前安装与路径规则以 [INSTALL.md](INSTALL.md)、[CONFIGURATION.md](CONFIGURATION.md) 为准；不要修改启动器源码中的常量。
 
 ## 日常一键启动与完全停止
 
@@ -39,11 +43,11 @@ python3 scripts/lifecycle.py status
 
 ## 安装与复现
 
-先准备合法取得的 GTNH 2.8.4 客户端、服务端及对应 Java。当前启动器读取本机 HMCL 依赖与资源，路径在 `scripts/launch_game.py` 中。迁移时调整 `SOURCE` 和 `JAVA`，不需要 HMCL 账号文件或登录令牌。
+先准备合法取得的 GTNH 2.8.4 客户端、服务端及对应 Java。当前启动器读取本机 HMCL 依赖与资源，路径保存在私有 `local-instances.json` 与 `local-settings.json`。迁移时使用向导填写路径，不需要 HMCL 账号文件或登录令牌。
 
 ```bash
 uv venv --python 3.11 .venv
-uv pip install --python .venv/bin/python -r requirements.txt
+uv pip install --python .venv/bin/python -e ".[hub]"
 uv pip install --python .venv/bin/python -r requirements-conversion.txt
 .venv/bin/python scripts/prepare_instances.py
 bash scripts/download_models.sh 2b
@@ -53,7 +57,7 @@ bash scripts/download_models.sh 2b
 ./start.sh
 ```
 
-默认 llama.cpp 路径为 `/home/rhys/llama.cpp/build/bin/llama-server`，可以通过 `LLAMA_SERVER_BIN` 覆盖。用支持 Qwen3.5 多模态的构建；记录的本机版本为 build 10394 / commit 680a9ae63。
+默认 llama.cpp 路径为项目内 `engines/llama.cpp/build/bin/llama-server`，可以通过 `LLAMA_SERVER_BIN` 覆盖。用支持 Qwen3.5 多模态的构建；记录的本机版本为 build 10394 / commit 680a9ae63。
 
 ```bash
 # 将模型切回纯 CPU；客户端仍使用显卡渲染。
@@ -91,7 +95,7 @@ MODEL_GPU_LAYERS=8 MODEL_VISION_GPU=1 ./start.sh --model 9b
 
 默认每50轮调用同一个本地模型整理一次，也可点击“立即整理续玩笔记”，间隔可设为10–500轮。这次请求只允许模型选择下一步建议和待确认事项，程序生成可读Markdown文档；不会把总结当作游戏动作，也不让模型随意改写已确认事实。任务完成情况目前没有接入验证，一律标为未确认。这个2B动作模型的整理能力有限，此功能还不等同于通用文本模型自由写作。
 
-私有文件在`memory/`：`agent_prompt.md`为固定提示词，`user_notes.md`为个人笔记，`current.md`为自动生成的续玩文档，`state.json`为结构化状态，`history/`保存编辑前、总结后和停止时的文档快照，`summaries/`保存模型整理原文。请通过观察台或编辑前两个文件修改内容；`current.md`会自动重建。固定提示词的公开初始模板在`config/agent-prompt.default.md`。
+私有文件在`memory/`：`agent_prompt.md`为固定提示词，`user_notes.md`为个人笔记，`current.md`为自动生成的续玩文档，`state.json`为结构化状态，`history/`保存编辑前、总结后和停止时的文档快照，`summaries/`保存模型整理原文。请通过观察台或编辑前两个文件修改内容；`current.md`会自动重建。固定提示词的公开初始模板在`config/prompt.default.md`。
 
 每次游戏推理会带入精简的续玩上下文，实际注入文本及哈希保存在该轮私有`runtime/episodes/*.json`的`agent_memory`字段。模型权重没有改变，短期画面历史在重启后重新建立。旧观测都带时间，恢复后以新画面/状态为准。记录针对当前同一测试世界，换世界时应先备份并移开`memory/`，再建立对应记录。
 
@@ -107,8 +111,8 @@ MODEL_GPU_LAYERS=8 MODEL_VISION_GPU=1 ./start.sh --model 9b
 | `scripts/lifecycle.py` | 就绪等待、异常清理和完整停止验收 |
 | `bridge/src/` | 客户端 Forge 桥接源码 |
 | `input/src/` | 隐藏窗口与虚拟输入隔离 agent 源码 |
-| `src/monitor.py` | 观察台与截图→模型→动作闭环 |
-| `src/server_console.py` | 本机 Minecraft 命令通道与回显 |
+| `mcbench/runtime.py` | 观察台与截图→模型→动作闭环 |
+| `mcbench/server_console.py` | 本机 Minecraft 命令通道与回显 |
 | `server-settings.json` | 服务器默认难度与游戏规则 |
 | `scripts/` | 下载、编译、启动和备份 |
 | `docs/ISSUES.md` | 实际问题与解决记录 |

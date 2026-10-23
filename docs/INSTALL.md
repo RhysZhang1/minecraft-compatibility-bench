@@ -1,8 +1,10 @@
 # 安装、运行与排障
 
+[English](INSTALL.en.md)
+
 已有服务器可直接运行 `./setup.sh --server-dir /你的服务器目录`；详见 [部署向导](SERVER-DEPLOYMENT.md) 与 [无桌面运行条件](HEADLESS.md)。
 
-这是一个实验性的 Linux Minecraft 视觉模型控制工具。请先在独立测试世界使用；原版基础操作通过不代表模型能完成复杂合成或任意整合包任务。
+这是一个实验性的 Linux Minecraft 视觉动作兼容层与测评台。请先在独立测试世界使用；原版基础操作通过不代表模型能完成复杂合成或任意整合包任务。
 
 WSL2/WSLg尚未完成实机适配；当前不能保证在WSL运行，详见 [WSL支持状态](WSL.md)。
 
@@ -17,15 +19,17 @@ WSL2/WSLg尚未完成实机适配；当前不能保证在WSL运行，详见 [WSL
 - 构建工具：C/C++编译器、pkg-config，以及 libei 和 D-Bus 的开发文件；JDK 17或更新版本，包含 javac、jar。
 - git、cmake、zstd；CUDA模型引擎构建另需 CUDA工具链。CPU构建不需要CUDA。
 
-项目不自动安装系统软件包，不更改显卡驱动、系统Python或系统Java。不同发行版的软件包名称不同，请按系统软件包管理器安装上述组件；运行 `./setup.sh --doctor` 查看工具、运行库和项目依赖状态。
+部署向导会先展示缺失系统软件包与安装命令，由使用者选择是否执行；不更改显卡驱动、系统Python或系统Java。不同发行版的软件包名称不同，请按系统软件包管理器安装上述组件；运行 `./setup.sh --doctor` 查看工具、运行库和项目依赖状态。
 
 当前2B量化文本模型约1.56GB，视觉编码器约0.67GB；实际显存还包括KV缓存和游戏渲染。本机2B可以完整卸载到显卡。原始检查点、F16中间文件、Java、游戏资源、日志和完整备份会继续占用磁盘，建议至少预留40GiB；保留完整私有备份时再留足一份空间。
 
 ## 2. 获取源码并准备环境
 
+公开实例文件现为模板，首次克隆无默认运行实例；不能直接沿用作者路径。完成向导后配置保存在本机 `local-instances.json`。Python 采用 `pyproject.toml` 标准打包；开发环境执行 `.venv/bin/pip install -e ".[dev]"`，运行环境由向导安装 `.[hub]`。配置字段见 [配置模板](CONFIGURATION.md)。
+
 ```bash
-git clone git@github.com:RhysZhang1/minecraft-gamescaling-agent.git
-cd minecraft-gamescaling-agent
+git clone git@github.com:RhysZhang1/minecraft-compatibility-bench.git
+cd minecraft-compatibility-bench
 ./setup.sh --doctor
 ./setup.sh
 ```
@@ -33,7 +37,7 @@ cd minecraft-gamescaling-agent
 未配置GitHub SSH的用户可用HTTPS克隆：
 
 ```bash
-git clone https://github.com/RhysZhang1/minecraft-gamescaling-agent.git
+git clone https://github.com/RhysZhang1/minecraft-compatibility-bench.git
 ```
 
 向导选项按下面顺序使用：
@@ -56,7 +60,7 @@ git clone https://github.com/RhysZhang1/minecraft-gamescaling-agent.git
 
 Git源码和GitHub自动生成的Source code压缩包不含预编译桥接文件。首次启动会构建本项目的只读Java采集器和libei输入库，需要前述JDK、ASM SDK与C开发依赖。
 
-若使用本项目自行打包的 `minecraft-agent-source-*.tar.gz`，其中 `release/` 附有本项目编译的桥接文件及SHA256清单，启动时可自动恢复；ABI/发行版不同仍应重新编译原生库。模型、Minecraft客户端、世界和账户数据都不在公开发行文件中。
+若使用本项目自行打包的 `minecraft-bench-source-*.tar.gz`，其中 `release/` 附有本项目编译的桥接文件及SHA256清单，启动时可自动恢复；ABI/发行版不同仍应重新编译原生库。模型、Minecraft客户端、世界和账户数据都不在公开发行文件中。
 
 ## 3. 完整启停
 
@@ -84,7 +88,7 @@ Git源码和GitHub自动生成的Source code压缩包不含预编译桥接文件
 
 观察台仅监听127.0.0.1:8790，模型接口为127.0.0.1:8789。服务器默认仅监听本机，使用固定离线测试角色，不读取HMCL账号。远程访问、正版账户登录与认证服务器不在当前安装流程中。
 
-页面可以看真实画面、实际生成的文本/动作、结果反馈、服务器命令回显和续玩文档。和平与死亡不掉落会在启动时应用并验证；26.3使用对应的新规则名称。
+页面可以看真实画面、实际生成的文本/动作、结果反馈、服务器命令回显和续玩文档。仅托管测试副本会在启动时应用并验证和平与死亡不掉落；只接入的外部服务器保持原设置。26.3使用对应的新规则名称。
 
 世界和角色物品保存在各自服务端，固定角色名/离线UUID让重启后继续。文档记忆按实例和world_id隔离；模型进程中的上下文本身不会跨进程保留。新世界请创建新实例和记忆目录，避免混用旧世界笔记。
 
@@ -120,9 +124,9 @@ Git源码和GitHub自动生成的Source code压缩包不含预编译桥接文件
 恢复到**新的空目录**，不要覆盖仍在运行的项目：
 
 ```bash
-mkdir minecraft-agent-restored
-cd minecraft-agent-restored
-tar --zstd -xf /安全路径/PRIVATE-minecraft-agent-full-时间戳.tar.zst
+mkdir minecraft-bench-restored
+cd minecraft-bench-restored
+tar --zstd -xf /安全路径/PRIVATE-minecraft-bench-full-时间戳.tar.zst
 python3 scripts/restore_private.py --rebind
 ./setup.sh --doctor
 ./start.sh --paused --no-open

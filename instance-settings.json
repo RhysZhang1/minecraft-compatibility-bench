@@ -1,17 +1,25 @@
 {
-  "selected": "vanilla-1-20-1",
-  "instances": {
+  "_comment": [
+    "Templates only: no instance is enabled in a fresh clone.",
+    "JSON does not support comments; these _comment fields are explanatory data.",
+    "Run ./setup.sh to prepare a vanilla instance, or ./setup.sh --server-dir /path/to/server.",
+    "Resolved machine paths belong in ignored local-instances.json, never in this file.",
+    "Fill every ${PLACEHOLDER}; unresolved values fail with a setup instruction.",
+    "See docs/CONFIGURATION.en.md and docs/CONFIGURATION.md."
+  ],
+  "selected": null,
+  "instances": {},
+  "templates": {
     "vanilla-1-20-1": {
       "label": "Minecraft 1.20.1 原版",
       "minecraft_version": "1.20.1",
       "backend": "virtual-x11",
-      "world_id": "vanilla-1-20-1-test-world",
       "player": "GameScalingBot",
       "client": {
-        "directory": "instances/vanilla-1.20.1-client",
+        "directory": "${CLIENT_DIRECTORY}",
         "manifest": "1.20.1.json",
         "jar": "1.20.1.jar",
-        "libraries_root": "instances/vanilla-runtime",
+        "libraries_root": "${LIBRARIES_ROOT}",
         "resources": {
           "min_heap": "1G",
           "max_heap": "4G",
@@ -26,7 +34,7 @@
       },
       "server": {
         "managed": true,
-        "directory": "instances/vanilla-1.20.1-server",
+        "directory": "${SERVER_DIRECTORY}",
         "jar": "server.jar",
         "jvm_args": [],
         "rcon_port": 25589,
@@ -41,19 +49,18 @@
         "port": 25569
       },
       "initial_goal": "Explore the surroundings carefully. Gather wood and basic materials. Check the results of each action.",
-      "java": "/usr/lib/jvm/java-21-openjdk/bin/java"
+      "java": "${JAVA_BIN}"
     },
     "vanilla-1-21-1": {
       "label": "Minecraft 1.21.1 原版",
       "minecraft_version": "1.21.1",
       "backend": "virtual-x11",
-      "world_id": "vanilla-1-21-1-test-world",
       "player": "GameScalingBot",
       "client": {
-        "directory": "instances/vanilla-1.21.1-client",
+        "directory": "${CLIENT_DIRECTORY}",
         "manifest": "1.21.1.json",
         "jar": "1.21.1.jar",
-        "libraries_root": "instances/vanilla-runtime",
+        "libraries_root": "${LIBRARIES_ROOT}",
         "resources": {
           "min_heap": "1G",
           "max_heap": "4G",
@@ -68,7 +75,7 @@
       },
       "server": {
         "managed": true,
-        "directory": "instances/vanilla-1.21.1-server",
+        "directory": "${SERVER_DIRECTORY}",
         "jar": "server.jar",
         "jvm_args": [],
         "rcon_port": 25588,
@@ -83,19 +90,18 @@
         "port": 25568
       },
       "initial_goal": "Explore the surroundings carefully. Gather wood and basic materials. Check the results of each action.",
-      "java": "/usr/lib/jvm/java-21-openjdk/bin/java"
+      "java": "${JAVA_BIN}"
     },
     "vanilla-26-3": {
       "label": "Minecraft 26.3 原版",
       "minecraft_version": "26.3",
       "backend": "virtual-x11",
-      "world_id": "vanilla-26-3-test-world",
       "player": "GameScalingBot",
       "client": {
-        "directory": "instances/vanilla-26.3-client",
+        "directory": "${CLIENT_DIRECTORY}",
         "manifest": "26.3.json",
         "jar": "26.3.jar",
-        "libraries_root": "instances/vanilla-runtime",
+        "libraries_root": "${LIBRARIES_ROOT}",
         "resources": {
           "min_heap": "1G",
           "max_heap": "4G",
@@ -110,7 +116,7 @@
       },
       "server": {
         "managed": true,
-        "directory": "instances/vanilla-26.3-server",
+        "directory": "${SERVER_DIRECTORY}",
         "jar": "server.jar",
         "jvm_args": [],
         "rcon_port": 25587,
@@ -124,19 +130,19 @@
         "host": "127.0.0.1",
         "port": 25567
       },
-      "initial_goal": "Explore the surroundings carefully. Gather wood and basic materials. Check the results of each action."
+      "initial_goal": "Explore the surroundings carefully. Gather wood and basic materials. Check the results of each action.",
+      "java": "${JAVA_BIN}"
     },
     "vanilla-1-7-10": {
       "label": "Minecraft 1.7.10 原版",
       "minecraft_version": "1.7.10",
       "backend": "virtual-x11",
-      "world_id": "vanilla-1-7-10-test-world",
       "player": "GameScalingBot",
       "client": {
-        "directory": "instances/vanilla-1.7.10-client",
+        "directory": "${CLIENT_DIRECTORY}",
         "manifest": "1.7.10.json",
         "jar": "1.7.10.jar",
-        "libraries_root": "instances/vanilla-runtime",
+        "libraries_root": "${LIBRARIES_ROOT}",
         "resources": {
           "min_heap": "1G",
           "max_heap": "4G",
@@ -151,7 +157,7 @@
       },
       "server": {
         "managed": true,
-        "directory": "instances/vanilla-1.7.10-server",
+        "directory": "${SERVER_DIRECTORY}",
         "jar": "server.jar",
         "jvm_args": [],
         "rcon_port": 25585,
@@ -166,45 +172,7 @@
         "port": 25566
       },
       "initial_goal": "Explore the surroundings carefully. Gather wood and basic materials. Check the results of each action.",
-      "java": "instances/java/8/bin/java"
-    },
-    "gtnh": {
-      "label": "GT New Horizons 2.8.4",
-      "minecraft_version": "1.7.10",
-      "backend": "forge1710-lwjgl3ify",
-      "world_id": "gtnh-test-world",
-      "player": "GameScalingBot",
-      "client": {
-        "directory": "instances/client",
-        "manifest": "GT New Horizons 2.8.4.json",
-        "jar": "GT New Horizons 2.8.4.jar",
-        "libraries_root": "~/.config/hmcl/.minecraft"
-      },
-      "server": {
-        "managed": true,
-        "directory": "instances/server",
-        "jar": "lwjgl3ify-forgePatches.jar",
-        "jvm_args": [
-          "@java9args.txt"
-        ],
-        "settings": "server-settings.json",
-        "rcon_port": 25575
-      },
-      "connection": {
-        "host": "127.0.0.1",
-        "port": 25565
-      },
-      "memory_directory": "memory",
-      "episodes_directory": "runtime/episodes",
-      "control_file": "runtime/control.json",
-      "rules_file": "config/gtnh-rules.existing.txt",
-      "context_file": "runtime/gtnh-context.json",
-      "context_extractor": "scripts/extract_gtnh_context.py",
-      "initial_goal": "Inspect the current surroundings and continue the saved objective.",
-      "bootstrap": {
-        "client_source": "~/.config/hmcl/.minecraft/versions/GT New Horizons 2.8.4",
-        "server_source": "~/Desktop/GTNH"
-      }
+      "java": "${JAVA_BIN}"
     }
   }
 }

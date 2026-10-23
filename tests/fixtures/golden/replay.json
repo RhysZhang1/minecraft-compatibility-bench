@@ -1,0 +1,5446 @@
+{
+  "schema_version": 1,
+  "provenance": {
+    "model": "GameScaling-2B-S1 Q4_K_M with F16 vision",
+    "source": "Local recorded test gameplay; no multiplayer chat or account files exported.",
+    "images": "Real model-input frames, masked top 64px and bottom 26%, resized to 320x180; no image metadata.",
+    "state": "Allowlisted fields only; absolute positions translated by a shared integer origin; names, paths, session IDs, wall-clock timestamps, chat and prompts omitted.",
+    "pairing": "Legacy episodes did not retain exact post-ack frames. Recorded cases pair consecutive model-input frames with their matching game_before state. These are not claimed to reproduce historical feedback byte for byte.",
+    "expectations": "Frozen once during fixture preparation and inspected; tests never regenerate expected results.",
+    "authored_cases": "Safety mutations, screen cycle and final stationary extension are explicitly labeled, not represented as observed model behavior.",
+    "game_versions": [
+      "26.3",
+      "1.20.1"
+    ],
+    "exact_result_pair": "One additional vanilla 1.20.1 record retains its exact acknowledged result image. post_ack_delay_ms is relative, with no wall-clock timestamp."
+  },
+  "sequences": [
+    {
+      "id": "recorded-screens-and-mining",
+      "settings": {},
+      "cases": [
+        {
+          "id": "observation-01",
+          "origin": "recorded-adjacent-observations",
+          "raw": "<think>\n\n</think>\n\n<|action_start|>0 0 0 ; LB ; LB ; LB ; LB ; LB ; LB<|action_end|>",
+          "latency_seconds": 0.58,
+          "before": {
+            "frame": "frame-001.png",
+            "sha256": "1eb2c1ea4fc6a4e8bfc9a910b161316940aa1a9b7843994f2657588821878f2b",
+            "game": {
+              "connected": true,
+              "screen": "",
+              "health": 20.0,
+              "cursor": {
+                "x": 427,
+                "y": 240,
+                "button_mask": 0
+              },
+              "session": "fixture-session",
+              "x": 0.5,
+              "y": 0.0,
+              "z": 0.5,
+              "inventory": [
+                {
+                  "slot": 0,
+                  "item": "minecraft:dirt",
+                  "count": 1
+                }
+              ],
+              "target_block": {
+                "x": 0,
+                "y": 1,
+                "z": 1,
+                "block": "minecraft:short_grass"
+              }
+            }
+          },
+          "after": {
+            "frame": "frame-002.png",
+            "sha256": "13392e61f2c9d2210b34d993fe07fa250e8f1376e35f94a39d5a0eb16e97e082",
+            "game": {
+              "connected": true,
+              "screen": "",
+              "health": 20.0,
+              "cursor": {
+                "x": 427,
+                "y": 240,
+                "button_mask": 0
+              },
+              "session": "fixture-session",
+              "x": 0.5,
+              "y": 0.0,
+              "z": 0.5,
+              "inventory": [
+                {
+                  "slot": 0,
+                  "item": "minecraft:dirt",
+                  "count": 1
+                }
+              ]
+            }
+          },
+          "expected": {
+            "action": {
+              "parsed": true,
+              "truncated": false,
+              "mouse": [
+                0.0,
+                0.0,
+                0.0
+              ],
+              "steps": [
+                [
+                  "LB"
+                ],
+                [
+                  "LB"
+                ],
+                [
+                  "LB"
+                ],
+                [
+                  "LB"
+                ],
+                [
+                  "LB"
+                ],
+                [
+                  "LB"
+                ]
+              ],
+              "history_text": "<|action_start|>0 0 0 ; LB ; LB ; LB ; LB ; LB ; LB<|action_end|>",
+              "is_noop": false,
+              "dropped": []
+            },
+            "execute": true,
+            "feedback": {
+              "changes": [
+                "visible scene changed"
+              ],
+              "visual_difference": 17.33,
+              "stagnant_decisions": 0,
+              "noop_streak": 0,
+              "recoveries": 0,
+              "phase": "observing",
+              "screen_cycle_detected": false,
+              "executed": true
+            },
+            "recovery": {
+              "reset_history": false,
+              "pause": false,
+              "reason": "none"
+            }
+          }
+        },
+        {
+          "id": "observation-02",
+          "origin": "recorded-adjacent-observations",
+          "raw": "<think>\n\n</think>\n\n<|action_start|>0 0 0 ; LB ; LB ; LB ; LB ; LB ; LB<|action_end|>",
+          "latency_seconds": 0.72,
+          "before": {
+            "frame": "frame-002.png",
+            "sha256": "13392e61f2c9d2210b34d993fe07fa250e8f1376e35f94a39d5a0eb16e97e082",
+            "game": {
+              "connected": true,
+              "screen": "",
+              "health": 20.0,
+              "cursor": {
+                "x": 427,
+                "y": 240,
+                "button_mask": 0
+              },
+              "session": "fixture-session",
+              "x": 0.5,
+              "y": 0.0,
+              "z": 0.5,
+              "inventory": [
+                {
+                  "slot": 0,
+                  "item": "minecraft:dirt",
+                  "count": 1
+                }
+              ]
+            }
+          },
+          "after": {
+            "frame": "frame-003.png",
+            "sha256": "97d59aae2a3738c93f67b734ea2c0af330f58d97e2488741795b1fac2f89a63e",
+            "game": {
+              "connected": true,
+              "screen": "",
+              "health": 20.0,
+              "cursor": {
+                "x": 427,
+                "y": 240,
+                "button_mask": 0
+              },
+              "session": "fixture-session",
+              "x": 0.5,
+              "y": 0.0,
+              "z": 0.5,
+              "inventory": [
+                {
+                  "slot": 0,
+                  "item": "minecraft:dirt",
+                  "count": 1
+                }
+              ]
+            }
+          },
+          "expected": {
+            "action": {
+              "parsed": true,
+              "truncated": false,
+              "mouse": [
+                0.0,
+                0.0,
+                0.0
+              ],
+              "steps": [
+                [
+                  "LB"
+                ],
+                [
+                  "LB"
+                ],
+                [
+                  "LB"
+                ],
+                [
+                  "LB"
+                ],
+                [
+                  "LB"
+                ],
+                [
+                  "LB"
+                ]
+              ],
+              "history_text": "<|action_start|>0 0 0 ; LB ; LB ; LB ; LB ; LB ; LB<|action_end|>",
+              "is_noop": false,
+              "dropped": []
+            },
+            "execute": true,
+            "feedback": {
+              "changes": [
+                "visible scene changed"
+              ],
+              "visual_difference": 17.31,
+              "stagnant_decisions": 0,
+              "noop_streak": 0,
+              "recoveries": 0,
+              "phase": "observing",
+              "screen_cycle_detected": false,
+              "executed": true
+            },
+            "recovery": {
+              "reset_history": false,
+              "pause": false,
+              "reason": "none"
+            }
+          }
+        },
+        {
+          "id": "observation-03",
+          "origin": "recorded-adjacent-observations",
+          "raw": "<think>\n\n</think>\n\n<|action_start|>-7 1 0 ; LB ; LB ; LB ;   ;   ;  <|action_end|>",
+          "latency_seconds": 0.85,
+          "before": {
+            "frame": "frame-003.png",
+            "sha256": "97d59aae2a3738c93f67b734ea2c0af330f58d97e2488741795b1fac2f89a63e",
+            "game": {
+              "connected": true,
+              "screen": "",
+              "health": 20.0,
+              "cursor": {
+                "x": 427,
+                "y": 240,
+                "button_mask": 0
+              },
+              "session": "fixture-session",
+              "x": 0.5,
+              "y": 0.0,
+              "z": 0.5,
+              "inventory": [
+                {
+                  "slot": 0,
+                  "item": "minecraft:dirt",
+                  "count": 1
+                }
+              ]
+            }
+          },
+          "after": {
+            "frame": "frame-004.png",
+            "sha256": "21a9039f00019a52f36e71e9a559b7af89458fb9b6dba90b168637b9f7178cf2",
+            "game": {
+              "connected": true,
+              "screen": "",
+              "health": 20.0,
+              "cursor": {
+                "x": 421,
+                "y": 240,
+                "button_mask": 0
+              },
+              "session": "fixture-session",
+              "x": 0.5,
+              "y": 0.0,
+              "z": 0.5,
+              "inventory": [
+                {
+                  "slot": 0,
+                  "item": "minecraft:dirt",
+                  "count": 1
+                }
+              ]
+            }
+          },
+          "expected": {
+            "action": {
+              "parsed": true,
+              "truncated": false,
+              "mouse": [
+                -7.0,
+                1.0,
+                0.0
+              ],
+              "steps": [
+                [
+                  "LB"
+                ],
+                [
+                  "LB"
+                ],
+                [
+                  "LB"
+                ],
+                [],
+                [],
+                []
+              ],
+              "history_text": "<|action_start|>-7 1 0 ; LB ; LB ; LB ;   ;   ;  <|action_end|>",
+              "is_noop": false,
+              "dropped": []
+            },
+            "execute": true,
+            "feedback": {
+              "changes": [],
+              "visual_difference": 1.67,
+              "stagnant_decisions": 1,
+              "noop_streak": 0,
+              "recoveries": 0,
+              "phase": "observing",
+              "screen_cycle_detected": false,
+              "executed": true
+            },
+            "recovery": {
+              "reset_history": false,
+              "pause": false,
+              "reason": "none"
+            }
+          }
+        },
+        {
+          "id": "observation-04",
+          "origin": "recorded-adjacent-observations",
+          "raw": "<think>\n\n</think>\n\n<|action_start|>0 0 0 ;   ;   ;   ;   ;   ;  <|action_end|>",
+          "latency_seconds": 1.03,
+          "before": {
+            "frame": "frame-004.png",
+            "sha256": "21a9039f00019a52f36e71e9a559b7af89458fb9b6dba90b168637b9f7178cf2",
+            "game": {
+              "connected": true,
+              "screen": "",
+              "health": 20.0,
+              "cursor": {
+                "x": 421,
+                "y": 240,
+                "button_mask": 0
+              },
+              "session": "fixture-session",
+              "x": 0.5,
+              "y": 0.0,
+              "z": 0.5,
+              "inventory": [
+                {
+                  "slot": 0,
+                  "item": "minecraft:dirt",
+                  "count": 1
+                }
+              ]
+            }
+          },
+          "after": {
+            "frame": "frame-005.png",
+            "sha256": "9f61ffbf3aad2d2df49ba485ff9580809ef6b2db874804e4cb59fe7fdd1bd026",
+            "game": {
+              "connected": true,
+              "screen": "",
+              "health": 20.0,
+              "cursor": {
+                "x": 421,
+                "y": 240,
+                "button_mask": 0
+              },
+              "session": "fixture-session",
+              "x": 0.5,
+              "y": 0.0,
+              "z": 0.5,
+              "inventory": [
+                {
+                  "slot": 0,
+                  "item": "minecraft:dirt",
+                  "count": 1
+                }
+              ]
+            }
+          },
+          "expected": {
+            "action": {
+              "parsed": true,
+              "truncated": false,
+              "mouse": [
+                0.0,
+                0.0,
+                0.0
+              ],
+              "steps": [
+                [],
+                [],
+                [],
+                [],
+                [],
+                []
+              ],
+              "history_text": "<|action_start|>0 0 0 ;   ;   ;   ;   ;   ;  <|action_end|>",
+              "is_noop": true,
+              "dropped": []
+            },
+            "execute": true,
+            "feedback": {
+              "changes": [],
+              "visual_difference": 0.03,
+              "stagnant_decisions": 2,
+              "noop_streak": 1,
+              "recoveries": 0,
+              "phase": "observing",
+              "screen_cycle_detected": false,
+              "executed": true
+            },
+            "recovery": {
+              "reset_history": false,
+              "pause": false,
+              "reason": "none"
+            }
+          }
+        },
+        {
+          "id": "observation-05",
+          "origin": "recorded-adjacent-observations",
+          "raw": "<think>\n\n</think>\n\n<|action_start|>0 0 0 ;   ;   ;   ;   ;   ;  <|action_end|>",
+          "latency_seconds": 1.17,
+          "before": {
+            "frame": "frame-005.png",
+            "sha256": "9f61ffbf3aad2d2df49ba485ff9580809ef6b2db874804e4cb59fe7fdd1bd026",
+            "game": {
+              "connected": true,
+              "screen": "",
+              "health": 20.0,
+              "cursor": {
+                "x": 421,
+                "y": 240,
+                "button_mask": 0
+              },
+              "session": "fixture-session",
+              "x": 0.5,
+              "y": 0.0,
+              "z": 0.5,
+              "inventory": [
+                {
+                  "slot": 0,
+                  "item": "minecraft:dirt",
+                  "count": 1
+                }
+              ]
+            }
+          },
+          "after": {
+            "frame": "frame-006.png",
+            "sha256": "0a4e5606c041f105775737200872c5feaa6df9a594b4935c348e78f2010920f6",
+            "game": {
+              "connected": true,
+              "screen": "",
+              "health": 20.0,
+              "cursor": {
+                "x": 421,
+                "y": 240,
+                "button_mask": 0
+              },
+              "session": "fixture-session",
+              "x": 0.5,
+              "y": 0.0,
+              "z": 0.5,
+              "inventory": [
+                {
+                  "slot": 0,
+                  "item": "minecraft:dirt",
+                  "count": 1
+                }
+              ]
+            }
+          },
+          "expected": {
+            "action": {
+              "parsed": true,
+              "truncated": false,
+              "mouse": [
+                0.0,
+                0.0,
+                0.0
+              ],
+              "steps": [
+                [],
+                [],
+                [],
+                [],
+                [],
+                []
+              ],
+              "history_text": "<|action_start|>0 0 0 ;   ;   ;   ;   ;   ;  <|action_end|>",
+              "is_noop": true,
+              "dropped": []
+            },
+            "execute": true,
+            "feedback": {
+              "changes": [],
+              "visual_difference": 0.08,
+              "stagnant_decisions": 3,
+              "noop_streak": 2,
+              "recoveries": 0,
+              "phase": "observing",
+              "screen_cycle_detected": false,
+              "executed": true
+            },
+            "recovery": {
+              "reset_history": false,
+              "pause": false,
+              "reason": "none"
+            }
+          }
+        },
+        {
+          "id": "observation-06",
+          "origin": "recorded-adjacent-observations",
+          "raw": "<think>\n\n</think>\n\n<|action_start|>0 0 0 ;   ;   ;   ; Esc ; Esc ; Esc<|action_end|>",
+          "latency_seconds": 1.19,
+          "before": {
+            "frame": "frame-006.png",
+            "sha256": "0a4e5606c041f105775737200872c5feaa6df9a594b4935c348e78f2010920f6",
+            "game": {
+              "connected": true,
+              "screen": "",
+              "health": 20.0,
+              "cursor": {
+                "x": 421,
+                "y": 240,
+                "button_mask": 0
+              },
+              "session": "fixture-session",
+              "x": 0.5,
+              "y": 0.0,
+              "z": 0.5,
+              "inventory": [
+                {
+                  "slot": 0,
+                  "item": "minecraft:dirt",
+                  "count": 1
+                }
+              ]
+            }
+          },
+          "after": {
+            "frame": "frame-007.png",
+            "sha256": "37d7168bb38db9bc5a51ccbd0e5fede5ac84db64427d8b1faaab90ad241dbadc",
+            "game": {
+              "connected": true,
+              "screen": "PauseScreen",
+              "health": 20.0,
+              "cursor": {
+                "x": 427,
+                "y": 240,
+                "button_mask": 0
+              },
+              "session": "fixture-session",
+              "x": 0.5,
+              "y": 0.0,
+              "z": 0.5,
+              "inventory": [
+                {
+                  "slot": 0,
+                  "item": "minecraft:dirt",
+                  "count": 1
+                }
+              ]
+            }
+          },
+          "expected": {
+            "action": {
+              "parsed": true,
+              "truncated": false,
+              "mouse": [
+                0.0,
+                0.0,
+                0.0
+              ],
+              "steps": [
+                [],
+                [],
+                [],
+                [
+                  "Esc"
+                ],
+                [
+                  "Esc"
+                ],
+                [
+                  "Esc"
+                ]
+              ],
+              "history_text": "<|action_start|>0 0 0 ;   ;   ;   ; Esc ; Esc ; Esc<|action_end|>",
+              "is_noop": false,
+              "dropped": []
+            },
+            "execute": true,
+            "feedback": {
+              "changes": [
+                "screen changed",
+                "visible scene changed"
+              ],
+              "visual_difference": 27.69,
+              "stagnant_decisions": 0,
+              "noop_streak": 0,
+              "recoveries": 0,
+              "phase": "observing",
+              "screen_cycle_detected": false,
+              "executed": true
+            },
+            "recovery": {
+              "reset_history": false,
+              "pause": false,
+              "reason": "none"
+            }
+          }
+        },
+        {
+          "id": "observation-07",
+          "origin": "recorded-adjacent-observations",
+          "raw": "<think>\n\n</think>\n\n<|action_start|>0 0 0 ;   ;   ;   ;   ;   ;  <|action_end|>",
+          "latency_seconds": 1.35,
+          "before": {
+            "frame": "frame-007.png",
+            "sha256": "37d7168bb38db9bc5a51ccbd0e5fede5ac84db64427d8b1faaab90ad241dbadc",
+            "game": {
+              "connected": true,
+              "screen": "PauseScreen",
+              "health": 20.0,
+              "cursor": {
+                "x": 427,
+                "y": 240,
+                "button_mask": 0
+              },
+              "session": "fixture-session",
+              "x": 0.5,
+              "y": 0.0,
+              "z": 0.5,
+              "inventory": [
+                {
+                  "slot": 0,
+                  "item": "minecraft:dirt",
+                  "count": 1
+                }
+              ]
+            }
+          },
+          "after": {
+            "frame": "frame-008.png",
+            "sha256": "4dc9a16589bdede340413c02bb08fd992e58579c77ca601d875183a1a06ebaa9",
+            "game": {
+              "connected": true,
+              "screen": "PauseScreen",
+              "health": 20.0,
+              "cursor": {
+                "x": 427,
+                "y": 240,
+                "button_mask": 0
+              },
+              "session": "fixture-session",
+              "x": 0.5,
+              "y": 0.0,
+              "z": 0.5,
+              "inventory": [
+                {
+                  "slot": 0,
+                  "item": "minecraft:dirt",
+                  "count": 1
+                }
+              ]
+            }
+          },
+          "expected": {
+            "action": {
+              "parsed": true,
+              "truncated": false,
+              "mouse": [
+                0.0,
+                0.0,
+                0.0
+              ],
+              "steps": [
+                [],
+                [],
+                [],
+                [],
+                [],
+                []
+              ],
+              "history_text": "<|action_start|>0 0 0 ;   ;   ;   ;   ;   ;  <|action_end|>",
+              "is_noop": true,
+              "dropped": []
+            },
+            "execute": true,
+            "feedback": {
+              "changes": [],
+              "visual_difference": 0.06,
+              "stagnant_decisions": 1,
+              "noop_streak": 1,
+              "recoveries": 0,
+              "phase": "observing",
+              "screen_cycle_detected": false,
+              "executed": true
+            },
+            "recovery": {
+              "reset_history": false,
+              "pause": false,
+              "reason": "none"
+            }
+          }
+        },
+        {
+          "id": "observation-08",
+          "origin": "recorded-adjacent-observations",
+          "raw": "<think>\n\n</think>\n\n<|action_start|>0 0 0 ;   ;   ;   ;   ;   ;  <|action_end|>",
+          "latency_seconds": 1.35,
+          "before": {
+            "frame": "frame-008.png",
+            "sha256": "4dc9a16589bdede340413c02bb08fd992e58579c77ca601d875183a1a06ebaa9",
+            "game": {
+              "connected": true,
+              "screen": "PauseScreen",
+              "health": 20.0,
+              "cursor": {
+                "x": 427,
+                "y": 240,
+                "button_mask": 0
+              },
+              "session": "fixture-session",
+              "x": 0.5,
+              "y": 0.0,
+              "z": 0.5,
+              "inventory": [
+                {
+                  "slot": 0,
+                  "item": "minecraft:dirt",
+                  "count": 1
+                }
+              ]
+            }
+          },
+          "after": {
+            "frame": "frame-009.png",
+            "sha256": "dd278ac4cb8bc30b86a20a945b3dfaa822df4392df0d40892e459b90ddbd4d2d",
+            "game": {
+              "connected": true,
+              "screen": "PauseScreen",
+              "health": 20.0,
+              "cursor": {
+                "x": 427,
+                "y": 240,
+                "button_mask": 0
+              },
+              "session": "fixture-session",
+              "x": 0.5,
+              "y": 0.0,
+              "z": 0.5,
+              "inventory": [
+                {
+                  "slot": 0,
+                  "item": "minecraft:dirt",
+                  "count": 1
+                }
+              ]
+            }
+          },
+          "expected": {
+            "action": {
+              "parsed": true,
+              "truncated": false,
+              "mouse": [
+                0.0,
+                0.0,
+                0.0
+              ],
+              "steps": [
+                [],
+                [],
+                [],
+                [],
+                [],
+                []
+              ],
+              "history_text": "<|action_start|>0 0 0 ;   ;   ;   ;   ;   ;  <|action_end|>",
+              "is_noop": true,
+              "dropped": []
+            },
+            "execute": true,
+            "feedback": {
+              "changes": [],
+              "visual_difference": 0.06,
+              "stagnant_decisions": 2,
+              "noop_streak": 2,
+              "recoveries": 0,
+              "phase": "observing",
+              "screen_cycle_detected": false,
+              "executed": true
+            },
+            "recovery": {
+              "reset_history": false,
+              "pause": false,
+              "reason": "none"
+            }
+          }
+        },
+        {
+          "id": "observation-09",
+          "origin": "recorded-adjacent-observations",
+          "raw": "<think>\n\n</think>\n\n<|action_start|>-43 4 0 ;   ;   ;   ;   ;   ;  <|action_end|>",
+          "latency_seconds": 1.38,
+          "before": {
+            "frame": "frame-009.png",
+            "sha256": "dd278ac4cb8bc30b86a20a945b3dfaa822df4392df0d40892e459b90ddbd4d2d",
+            "game": {
+              "connected": true,
+              "screen": "PauseScreen",
+              "health": 20.0,
+              "cursor": {
+                "x": 427,
+                "y": 240,
+                "button_mask": 0
+              },
+              "session": "fixture-session",
+              "x": 0.5,
+              "y": 0.0,
+              "z": 0.5,
+              "inventory": [
+                {
+                  "slot": 0,
+                  "item": "minecraft:dirt",
+                  "count": 1
+                }
+              ]
+            }
+          },
+          "after": {
+            "frame": "frame-010.png",
+            "sha256": "c5ec71e827a992f077dae7b71fb5b33c22b4384c8b09f07a55119ca684cc0e31",
+            "game": {
+              "connected": true,
+              "screen": "PauseScreen",
+              "health": 20.0,
+              "cursor": {
+                "x": 390,
+                "y": 241,
+                "button_mask": 0
+              },
+              "session": "fixture-session",
+              "x": 0.5,
+              "y": 0.0,
+              "z": 0.5,
+              "inventory": [
+                {
+                  "slot": 0,
+                  "item": "minecraft:dirt",
+                  "count": 1
+                }
+              ]
+            }
+          },
+          "expected": {
+            "action": {
+              "parsed": true,
+              "truncated": false,
+              "mouse": [
+                -43.0,
+                4.0,
+                0.0
+              ],
+              "steps": [
+                [],
+                [],
+                [],
+                [],
+                [],
+                []
+              ],
+              "history_text": "<|action_start|>-43 4 0 ;   ;   ;   ;   ;   ;  <|action_end|>",
+              "is_noop": false,
+              "dropped": []
+            },
+            "execute": true,
+            "feedback": {
+              "changes": [],
+              "visual_difference": 0.86,
+              "stagnant_decisions": 3,
+              "noop_streak": 0,
+              "recoveries": 0,
+              "phase": "observing",
+              "screen_cycle_detected": false,
+              "executed": true
+            },
+            "recovery": {
+              "reset_history": false,
+              "pause": false,
+              "reason": "none"
+            }
+          }
+        },
+        {
+          "id": "observation-10",
+          "origin": "recorded-adjacent-observations",
+          "raw": "<think>\n\n</think>\n\n<|action_start|>4 2 0 ;   ;   ;   ; Esc ; Esc ; Esc<|action_end|>",
+          "latency_seconds": 1.35,
+          "before": {
+            "frame": "frame-010.png",
+            "sha256": "c5ec71e827a992f077dae7b71fb5b33c22b4384c8b09f07a55119ca684cc0e31",
+            "game": {
+              "connected": true,
+              "screen": "PauseScreen",
+              "health": 20.0,
+              "cursor": {
+                "x": 390,
+                "y": 241,
+                "button_mask": 0
+              },
+              "session": "fixture-session",
+              "x": 0.5,
+              "y": 0.0,
+              "z": 0.5,
+              "inventory": [
+                {
+                  "slot": 0,
+                  "item": "minecraft:dirt",
+                  "count": 1
+                }
+              ]
+            }
+          },
+          "after": {
+            "frame": "frame-011.png",
+            "sha256": "7b868e5a677211e9dfae5a159bab4ac92d2535067d0992d571ac99aef57dc583",
+            "game": {
+              "connected": true,
+              "screen": "",
+              "health": 20.0,
+              "cursor": {
+                "x": 426,
+                "y": 240,
+                "button_mask": 0
+              },
+              "session": "fixture-session",
+              "x": 0.5,
+              "y": 0.0,
+              "z": 0.5,
+              "inventory": [
+                {
+                  "slot": 0,
+                  "item": "minecraft:dirt",
+                  "count": 1
+                }
+              ]
+            }
+          },
+          "expected": {
+            "action": {
+              "parsed": true,
+              "truncated": false,
+              "mouse": [
+                4.0,
+                2.0,
+                0.0
+              ],
+              "steps": [
+                [],
+                [],
+                [],
+                [
+                  "Esc"
+                ],
+                [
+                  "Esc"
+                ],
+                [
+                  "Esc"
+                ]
+              ],
+              "history_text": "<|action_start|>4 2 0 ;   ;   ;   ; Esc ; Esc ; Esc<|action_end|>",
+              "is_noop": false,
+              "dropped": []
+            },
+            "execute": true,
+            "feedback": {
+              "changes": [
+                "screen changed",
+                "visible scene changed"
+              ],
+              "visual_difference": 27.56,
+              "stagnant_decisions": 0,
+              "noop_streak": 0,
+              "recoveries": 0,
+              "phase": "observing",
+              "screen_cycle_detected": false,
+              "executed": true
+            },
+            "recovery": {
+              "reset_history": false,
+              "pause": false,
+              "reason": "none"
+            }
+          }
+        },
+        {
+          "id": "observation-11",
+          "origin": "recorded-adjacent-observations",
+          "raw": "<think>\n\n</think>\n\n<|action_start|>2 35 0 ;   ;   ;   ;   ;   ;  <|action_end|>",
+          "latency_seconds": 1.33,
+          "before": {
+            "frame": "frame-011.png",
+            "sha256": "7b868e5a677211e9dfae5a159bab4ac92d2535067d0992d571ac99aef57dc583",
+            "game": {
+              "connected": true,
+              "screen": "",
+              "health": 20.0,
+              "cursor": {
+                "x": 426,
+                "y": 240,
+                "button_mask": 0
+              },
+              "session": "fixture-session",
+              "x": 0.5,
+              "y": 0.0,
+              "z": 0.5,
+              "inventory": [
+                {
+                  "slot": 0,
+                  "item": "minecraft:dirt",
+                  "count": 1
+                }
+              ]
+            }
+          },
+          "after": {
+            "frame": "frame-012.png",
+            "sha256": "1ad31d9a579793d040763ebecd35cd62b63d5c60629a6c171f2c659ab3295531",
+            "game": {
+              "connected": true,
+              "screen": "",
+              "health": 20.0,
+              "cursor": {
+                "x": 427,
+                "y": 256,
+                "button_mask": 0
+              },
+              "session": "fixture-session",
+              "x": 0.5,
+              "y": 0.0,
+              "z": 0.5,
+              "inventory": [
+                {
+                  "slot": 0,
+                  "item": "minecraft:dirt",
+                  "count": 1
+                }
+              ]
+            }
+          },
+          "expected": {
+            "action": {
+              "parsed": true,
+              "truncated": false,
+              "mouse": [
+                2.0,
+                35.0,
+                0.0
+              ],
+              "steps": [
+                [],
+                [],
+                [],
+                [],
+                [],
+                []
+              ],
+              "history_text": "<|action_start|>2 35 0 ;   ;   ;   ;   ;   ;  <|action_end|>",
+              "is_noop": false,
+              "dropped": []
+            },
+            "execute": true,
+            "feedback": {
+              "changes": [
+                "visible scene changed"
+              ],
+              "visual_difference": 7.17,
+              "stagnant_decisions": 0,
+              "noop_streak": 0,
+              "recoveries": 0,
+              "phase": "observing",
+              "screen_cycle_detected": false,
+              "executed": true
+            },
+            "recovery": {
+              "reset_history": false,
+              "pause": false,
+              "reason": "none"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "recorded-pickup-and-movement",
+      "settings": {},
+      "cases": [
+        {
+          "id": "observation-01",
+          "origin": "recorded-adjacent-observations",
+          "raw": "<think>\n\n</think>\n\n<|action_start|>0 0 0 ; LB ; LB ; LB ; LB ; LB ; LB<|action_end|>",
+          "latency_seconds": 1.34,
+          "before": {
+            "frame": "frame-013.png",
+            "sha256": "9c3aae450ae16debbbbacaae0115d247c929d4bfb3b7e232a88818e1569c7cc8",
+            "game": {
+              "connected": true,
+              "screen": "",
+              "health": 20.0,
+              "cursor": {
+                "x": 446,
+                "y": 413,
+                "button_mask": 0
+              },
+              "session": "fixture-session",
+              "x": 0.5,
+              "y": 0.0,
+              "z": 0.5,
+              "inventory": [
+                {
+                  "slot": 0,
+                  "item": "minecraft:dirt",
+                  "count": 1
+                }
+              ],
+              "target_block": {
+                "x": 0,
+                "y": 0,
+                "z": 1,
+                "block": "minecraft:grass_block"
+              }
+            }
+          },
+          "after": {
+            "frame": "frame-014.png",
+            "sha256": "ffbdc42b989e3df9debf7c9ccc61bc311b8fc0ef9f435e36366d06eea4f3cd6f",
+            "game": {
+              "connected": true,
+              "screen": "",
+              "health": 20.0,
+              "cursor": {
+                "x": 446,
+                "y": 413,
+                "button_mask": 256
+              },
+              "session": "fixture-session",
+              "x": 0.5,
+              "y": 0.0,
+              "z": 0.5,
+              "inventory": [
+                {
+                  "slot": 0,
+                  "item": "minecraft:dirt",
+                  "count": 1
+                }
+              ],
+              "target_block": {
+                "x": 0,
+                "y": 0,
+                "z": 1,
+                "block": "minecraft:grass_block"
+              }
+            }
+          },
+          "expected": {
+            "action": {
+              "parsed": true,
+              "truncated": false,
+              "mouse": [
+                0.0,
+                0.0,
+                0.0
+              ],
+              "steps": [
+                [
+                  "LB"
+                ],
+                [
+                  "LB"
+                ],
+                [
+                  "LB"
+                ],
+                [
+                  "LB"
+                ],
+                [
+                  "LB"
+                ],
+                [
+                  "LB"
+                ]
+              ],
+              "history_text": "<|action_start|>0 0 0 ; LB ; LB ; LB ; LB ; LB ; LB<|action_end|>",
+              "is_noop": false,
+              "dropped": []
+            },
+            "execute": true,
+            "feedback": {
+              "changes": [],
+              "visual_difference": 0.72,
+              "stagnant_decisions": 1,
+              "noop_streak": 0,
+              "recoveries": 0,
+              "phase": "observing",
+              "screen_cycle_detected": false,
+              "executed": true
+            },
+            "recovery": {
+              "reset_history": false,
+              "pause": false,
+              "reason": "none"
+            }
+          }
+        },
+        {
+          "id": "observation-02",
+          "origin": "recorded-adjacent-observations",
+          "raw": "<think>\n\n</think>\n\n<|action_start|>-11 19 0 ; LB ; LB ; LB ; LB ; LB ; LB<|action_end|>",
+          "latency_seconds": 1.35,
+          "before": {
+            "frame": "frame-014.png",
+            "sha256": "ffbdc42b989e3df9debf7c9ccc61bc311b8fc0ef9f435e36366d06eea4f3cd6f",
+            "game": {
+              "connected": true,
+              "screen": "",
+              "health": 20.0,
+              "cursor": {
+                "x": 446,
+                "y": 413,
+                "button_mask": 256
+              },
+              "session": "fixture-session",
+              "x": 0.5,
+              "y": 0.0,
+              "z": 0.5,
+              "inventory": [
+                {
+                  "slot": 0,
+                  "item": "minecraft:dirt",
+                  "count": 1
+                }
+              ],
+              "target_block": {
+                "x": 0,
+                "y": 0,
+                "z": 1,
+                "block": "minecraft:grass_block"
+              }
+            }
+          },
+          "after": {
+            "frame": "frame-015.png",
+            "sha256": "4a236130495ad9aa1dba0b54b83d65450be8710ba0432d057132b29c51b99bb9",
+            "game": {
+              "connected": true,
+              "screen": "",
+              "health": 20.0,
+              "cursor": {
+                "x": 437,
+                "y": 422,
+                "button_mask": 256
+              },
+              "session": "fixture-session",
+              "x": 0.5,
+              "y": 0.0,
+              "z": 0.5,
+              "inventory": [
+                {
+                  "slot": 0,
+                  "item": "minecraft:dirt",
+                  "count": 2
+                }
+              ],
+              "target_block": {
+                "x": 0,
+                "y": 0,
+                "z": 2,
+                "block": "minecraft:grass_block"
+              }
+            }
+          },
+          "expected": {
+            "action": {
+              "parsed": true,
+              "truncated": false,
+              "mouse": [
+                -11.0,
+                19.0,
+                0.0
+              ],
+              "steps": [
+                [
+                  "LB"
+                ],
+                [
+                  "LB"
+                ],
+                [
+                  "LB"
+                ],
+                [
+                  "LB"
+                ],
+                [
+                  "LB"
+                ],
+                [
+                  "LB"
+                ]
+              ],
+              "history_text": "<|action_start|>-11 19 0 ; LB ; LB ; LB ; LB ; LB ; LB<|action_end|>",
+              "is_noop": false,
+              "dropped": []
+            },
+            "execute": true,
+            "feedback": {
+              "changes": [
+                "inventory changed",
+                "visible scene changed"
+              ],
+              "visual_difference": 6.94,
+              "stagnant_decisions": 0,
+              "noop_streak": 0,
+              "recoveries": 0,
+              "phase": "observing",
+              "screen_cycle_detected": false,
+              "executed": true
+            },
+            "recovery": {
+              "reset_history": false,
+              "pause": false,
+              "reason": "none"
+            }
+          }
+        },
+        {
+          "id": "observation-03",
+          "origin": "recorded-adjacent-observations",
+          "raw": "<think>\nI have started excavating the grassy hillside and collected a few dirt blocks, but the movement tutorial has now appeared in the upper-right, refreshing my immediate focus. The player is still facing a dirt block, so I should keep holding LB while using W to break through this small rise and then follow the tutorial by moving forward over the terrain.\n</think>\n\n<|action_start|>0 0 0 ; LB ; LB ; LB ; LB ; LB ; LB<|action_end|>",
+          "latency_seconds": 1.76,
+          "before": {
+            "frame": "frame-015.png",
+            "sha256": "4a236130495ad9aa1dba0b54b83d65450be8710ba0432d057132b29c51b99bb9",
+            "game": {
+              "connected": true,
+              "screen": "",
+              "health": 20.0,
+              "cursor": {
+                "x": 437,
+                "y": 422,
+                "button_mask": 256
+              },
+              "session": "fixture-session",
+              "x": 0.5,
+              "y": 0.0,
+              "z": 0.5,
+              "inventory": [
+                {
+                  "slot": 0,
+                  "item": "minecraft:dirt",
+                  "count": 2
+                }
+              ],
+              "target_block": {
+                "x": 0,
+                "y": 0,
+                "z": 2,
+                "block": "minecraft:grass_block"
+              }
+            }
+          },
+          "after": {
+            "frame": "frame-016.png",
+            "sha256": "741ace85859f1fc40e36acdb04754f13100fe8509f6326ce38f050faddce68e8",
+            "game": {
+              "connected": true,
+              "screen": "",
+              "health": 20.0,
+              "cursor": {
+                "x": 437,
+                "y": 422,
+                "button_mask": 256
+              },
+              "session": "fixture-session",
+              "x": 0.5,
+              "y": 0.0,
+              "z": 0.5,
+              "inventory": [
+                {
+                  "slot": 0,
+                  "item": "minecraft:dirt",
+                  "count": 2
+                }
+              ],
+              "target_block": {
+                "x": 0,
+                "y": -1,
+                "z": 3,
+                "block": "minecraft:dirt"
+              }
+            }
+          },
+          "expected": {
+            "action": {
+              "parsed": true,
+              "truncated": false,
+              "mouse": [
+                0.0,
+                0.0,
+                0.0
+              ],
+              "steps": [
+                [
+                  "LB"
+                ],
+                [
+                  "LB"
+                ],
+                [
+                  "LB"
+                ],
+                [
+                  "LB"
+                ],
+                [
+                  "LB"
+                ],
+                [
+                  "LB"
+                ]
+              ],
+              "history_text": "<|action_start|>0 0 0 ; LB ; LB ; LB ; LB ; LB ; LB<|action_end|>",
+              "is_noop": false,
+              "dropped": []
+            },
+            "execute": true,
+            "feedback": {
+              "changes": [],
+              "visual_difference": 3.44,
+              "stagnant_decisions": 1,
+              "noop_streak": 0,
+              "recoveries": 0,
+              "phase": "observing",
+              "screen_cycle_detected": false,
+              "executed": true
+            },
+            "recovery": {
+              "reset_history": false,
+              "pause": false,
+              "reason": "none"
+            }
+          }
+        },
+        {
+          "id": "observation-04",
+          "origin": "recorded-adjacent-observations",
+          "raw": "<think>\n\n</think>\n\n<|action_start|>-19 0 0 ; LB ; LB W ; LB W ; LB W ; LB W ; LB W<|action_end|>",
+          "latency_seconds": 1.37,
+          "before": {
+            "frame": "frame-016.png",
+            "sha256": "741ace85859f1fc40e36acdb04754f13100fe8509f6326ce38f050faddce68e8",
+            "game": {
+              "connected": true,
+              "screen": "",
+              "health": 20.0,
+              "cursor": {
+                "x": 437,
+                "y": 422,
+                "button_mask": 256
+              },
+              "session": "fixture-session",
+              "x": 0.5,
+              "y": 0.0,
+              "z": 0.5,
+              "inventory": [
+                {
+                  "slot": 0,
+                  "item": "minecraft:dirt",
+                  "count": 2
+                }
+              ],
+              "target_block": {
+                "x": 0,
+                "y": -1,
+                "z": 3,
+                "block": "minecraft:dirt"
+              }
+            }
+          },
+          "after": {
+            "frame": "frame-017.png",
+            "sha256": "10fb615735b520cbdf7d7d73ff11570e6d0e75123c13c1927edddbc67d6db506",
+            "game": {
+              "connected": true,
+              "screen": "",
+              "health": 20.0,
+              "cursor": {
+                "x": 420,
+                "y": 422,
+                "button_mask": 256
+              },
+              "session": "fixture-session",
+              "x": 0.5447,
+              "y": 0.0,
+              "z": 1.719,
+              "inventory": [
+                {
+                  "slot": 0,
+                  "item": "minecraft:dirt",
+                  "count": 3
+                }
+              ],
+              "target_block": {
+                "x": 0,
+                "y": -1,
+                "z": 4,
+                "block": "minecraft:dirt"
+              }
+            }
+          },
+          "expected": {
+            "action": {
+              "parsed": true,
+              "truncated": false,
+              "mouse": [
+                -19.0,
+                0.0,
+                0.0
+              ],
+              "steps": [
+                [
+                  "LB"
+                ],
+                [
+                  "LB",
+                  "W"
+                ],
+                [
+                  "LB",
+                  "W"
+                ],
+                [
+                  "LB",
+                  "W"
+                ],
+                [
+                  "LB",
+                  "W"
+                ],
+                [
+                  "LB",
+                  "W"
+                ]
+              ],
+              "history_text": "<|action_start|>-19 0 0 ; LB ; LB W ; LB W ; LB W ; LB W ; LB W<|action_end|>",
+              "is_noop": false,
+              "dropped": []
+            },
+            "execute": true,
+            "feedback": {
+              "changes": [
+                "inventory changed",
+                "position changed",
+                "visible scene changed"
+              ],
+              "visual_difference": 8.31,
+              "stagnant_decisions": 0,
+              "noop_streak": 0,
+              "recoveries": 0,
+              "phase": "observing",
+              "screen_cycle_detected": false,
+              "executed": true
+            },
+            "recovery": {
+              "reset_history": false,
+              "pause": false,
+              "reason": "none"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "recorded-stagnation",
+      "settings": {},
+      "cases": [
+        {
+          "id": "observation-01",
+          "origin": "recorded-adjacent-observations",
+          "raw": "<think>\n\n</think>\n\n<|action_start|>-44 105 0 ;   ;   ;   ;   ;   ;  <|action_end|>",
+          "latency_seconds": 1.35,
+          "before": {
+            "frame": "frame-018.png",
+            "sha256": "04e9e3e9ec2345dfcc6e5ad3ac88cbb86f07d34866bc08ac96bf8cf0fa522746",
+            "game": {
+              "connected": true,
+              "screen": "PauseScreen",
+              "health": 20.0,
+              "cursor": {
+                "x": 427,
+                "y": 240,
+                "button_mask": 0
+              },
+              "session": "fixture-session",
+              "x": 1.3201,
+              "y": -2.0,
+              "z": 5.3038,
+              "inventory": [
+                {
+                  "slot": 0,
+                  "item": "minecraft:dirt",
+                  "count": 16
+                }
+              ],
+              "target_block": {
+                "x": 1,
+                "y": -2,
+                "z": 7,
+                "block": "minecraft:dirt"
+              }
+            }
+          },
+          "after": {
+            "frame": "frame-019.png",
+            "sha256": "93692045e5ad83949ee55996282a992abf984463547745e9c0f3bf518d284428",
+            "game": {
+              "connected": true,
+              "screen": "PauseScreen",
+              "health": 20.0,
+              "cursor": {
+                "x": 389,
+                "y": 290,
+                "button_mask": 0
+              },
+              "session": "fixture-session",
+              "x": 1.3201,
+              "y": -2.0,
+              "z": 5.3038,
+              "inventory": [
+                {
+                  "slot": 0,
+                  "item": "minecraft:dirt",
+                  "count": 16
+                }
+              ],
+              "target_block": {
+                "x": 1,
+                "y": -2,
+                "z": 7,
+                "block": "minecraft:dirt"
+              }
+            }
+          },
+          "expected": {
+            "action": {
+              "parsed": true,
+              "truncated": false,
+              "mouse": [
+                -44.0,
+                105.0,
+                0.0
+              ],
+              "steps": [
+                [],
+                [],
+                [],
+                [],
+                [],
+                []
+              ],
+              "history_text": "<|action_start|>-44 105 0 ;   ;   ;   ;   ;   ;  <|action_end|>",
+              "is_noop": false,
+              "dropped": []
+            },
+            "execute": true,
+            "feedback": {
+              "changes": [],
+              "visual_difference": 0.89,
+              "stagnant_decisions": 1,
+              "noop_streak": 0,
+              "recoveries": 0,
+              "phase": "observing",
+              "screen_cycle_detected": false,
+              "executed": true
+            },
+            "recovery": {
+              "reset_history": false,
+              "pause": false,
+              "reason": "none"
+            }
+          }
+        },
+        {
+          "id": "observation-02",
+          "origin": "recorded-adjacent-observations",
+          "raw": "<think>\n\n</think>\n\n<|action_start|>-39 -45 0 ;   ;   ;   ;   ;   ;  <|action_end|>",
+          "latency_seconds": 1.35,
+          "before": {
+            "frame": "frame-019.png",
+            "sha256": "93692045e5ad83949ee55996282a992abf984463547745e9c0f3bf518d284428",
+            "game": {
+              "connected": true,
+              "screen": "PauseScreen",
+              "health": 20.0,
+              "cursor": {
+                "x": 389,
+                "y": 290,
+                "button_mask": 0
+              },
+              "session": "fixture-session",
+              "x": 1.3201,
+              "y": -2.0,
+              "z": 5.3038,
+              "inventory": [
+                {
+                  "slot": 0,
+                  "item": "minecraft:dirt",
+                  "count": 16
+                }
+              ],
+              "target_block": {
+                "x": 1,
+                "y": -2,
+                "z": 7,
+                "block": "minecraft:dirt"
+              }
+            }
+          },
+          "after": {
+            "frame": "frame-020.png",
+            "sha256": "1cee545ca980bba180d23cbe8d6d25ff8a0f0c95404e9992111bd0d2bd63f58d",
+            "game": {
+              "connected": true,
+              "screen": "PauseScreen",
+              "health": 20.0,
+              "cursor": {
+                "x": 356,
+                "y": 268,
+                "button_mask": 0
+              },
+              "session": "fixture-session",
+              "x": 1.3201,
+              "y": -2.0,
+              "z": 5.3038,
+              "inventory": [
+                {
+                  "slot": 0,
+                  "item": "minecraft:dirt",
+                  "count": 16
+                }
+              ],
+              "target_block": {
+                "x": 1,
+                "y": -2,
+                "z": 7,
+                "block": "minecraft:dirt"
+              }
+            }
+          },
+          "expected": {
+            "action": {
+              "parsed": true,
+              "truncated": false,
+              "mouse": [
+                -39.0,
+                -45.0,
+                0.0
+              ],
+              "steps": [
+                [],
+                [],
+                [],
+                [],
+                [],
+                []
+              ],
+              "history_text": "<|action_start|>-39 -45 0 ;   ;   ;   ;   ;   ;  <|action_end|>",
+              "is_noop": false,
+              "dropped": []
+            },
+            "execute": true,
+            "feedback": {
+              "changes": [],
+              "visual_difference": 1.81,
+              "stagnant_decisions": 2,
+              "noop_streak": 0,
+              "recoveries": 0,
+              "phase": "observing",
+              "screen_cycle_detected": false,
+              "executed": true
+            },
+            "recovery": {
+              "reset_history": false,
+              "pause": false,
+              "reason": "none"
+            }
+          }
+        },
+        {
+          "id": "observation-03",
+          "origin": "recorded-adjacent-observations",
+          "raw": "<think>\n\n</think>\n\n<|action_start|>-15 2 0 ;   ;   ;   ;   ;   ;  <|action_end|>",
+          "latency_seconds": 1.34,
+          "before": {
+            "frame": "frame-020.png",
+            "sha256": "1cee545ca980bba180d23cbe8d6d25ff8a0f0c95404e9992111bd0d2bd63f58d",
+            "game": {
+              "connected": true,
+              "screen": "PauseScreen",
+              "health": 20.0,
+              "cursor": {
+                "x": 356,
+                "y": 268,
+                "button_mask": 0
+              },
+              "session": "fixture-session",
+              "x": 1.3201,
+              "y": -2.0,
+              "z": 5.3038,
+              "inventory": [
+                {
+                  "slot": 0,
+                  "item": "minecraft:dirt",
+                  "count": 16
+                }
+              ],
+              "target_block": {
+                "x": 1,
+                "y": -2,
+                "z": 7,
+                "block": "minecraft:dirt"
+              }
+            }
+          },
+          "after": {
+            "frame": "frame-021.png",
+            "sha256": "b98e4b862aae4febaaa25b675a55e525ce6eaaab105df16b8a2d5e40dc3ca933",
+            "game": {
+              "connected": true,
+              "screen": "PauseScreen",
+              "health": 20.0,
+              "cursor": {
+                "x": 343,
+                "y": 269,
+                "button_mask": 0
+              },
+              "session": "fixture-session",
+              "x": 1.3201,
+              "y": -2.0,
+              "z": 5.3038,
+              "inventory": [
+                {
+                  "slot": 0,
+                  "item": "minecraft:dirt",
+                  "count": 16
+                }
+              ],
+              "target_block": {
+                "x": 1,
+                "y": -2,
+                "z": 7,
+                "block": "minecraft:dirt"
+              }
+            }
+          },
+          "expected": {
+            "action": {
+              "parsed": true,
+              "truncated": false,
+              "mouse": [
+                -15.0,
+                2.0,
+                0.0
+              ],
+              "steps": [
+                [],
+                [],
+                [],
+                [],
+                [],
+                []
+              ],
+              "history_text": "<|action_start|>-15 2 0 ;   ;   ;   ;   ;   ;  <|action_end|>",
+              "is_noop": false,
+              "dropped": []
+            },
+            "execute": true,
+            "feedback": {
+              "changes": [],
+              "visual_difference": 0.31,
+              "stagnant_decisions": 3,
+              "noop_streak": 0,
+              "recoveries": 0,
+              "phase": "observing",
+              "screen_cycle_detected": false,
+              "executed": true
+            },
+            "recovery": {
+              "reset_history": false,
+              "pause": false,
+              "reason": "none"
+            }
+          }
+        },
+        {
+          "id": "observation-04",
+          "origin": "recorded-adjacent-observations",
+          "raw": "<think>\n\n</think>\n\n<|action_start|>-42 38 0 ;   ;   ;   ;   ;   ;  <|action_end|>",
+          "latency_seconds": 1.38,
+          "before": {
+            "frame": "frame-021.png",
+            "sha256": "b98e4b862aae4febaaa25b675a55e525ce6eaaab105df16b8a2d5e40dc3ca933",
+            "game": {
+              "connected": true,
+              "screen": "PauseScreen",
+              "health": 20.0,
+              "cursor": {
+                "x": 343,
+                "y": 269,
+                "button_mask": 0
+              },
+              "session": "fixture-session",
+              "x": 1.3201,
+              "y": -2.0,
+              "z": 5.3038,
+              "inventory": [
+                {
+                  "slot": 0,
+                  "item": "minecraft:dirt",
+                  "count": 16
+                }
+              ],
+              "target_block": {
+                "x": 1,
+                "y": -2,
+                "z": 7,
+                "block": "minecraft:dirt"
+              }
+            }
+          },
+          "after": {
+            "frame": "frame-022.png",
+            "sha256": "34293d7225b052dd34cd3445727bbeb70dad48ec284d970372f7d6e5acfedf8d",
+            "game": {
+              "connected": true,
+              "screen": "PauseScreen",
+              "health": 20.0,
+              "cursor": {
+                "x": 307,
+                "y": 288,
+                "button_mask": 0
+              },
+              "session": "fixture-session",
+              "x": 1.3201,
+              "y": -2.0,
+              "z": 5.3038,
+              "inventory": [
+                {
+                  "slot": 0,
+                  "item": "minecraft:dirt",
+                  "count": 16
+                }
+              ],
+              "target_block": {
+                "x": 1,
+                "y": -2,
+                "z": 7,
+                "block": "minecraft:dirt"
+              }
+            }
+          },
+          "expected": {
+            "action": {
+              "parsed": true,
+              "truncated": false,
+              "mouse": [
+                -42.0,
+                38.0,
+                0.0
+              ],
+              "steps": [
+                [],
+                [],
+                [],
+                [],
+                [],
+                []
+              ],
+              "history_text": "<|action_start|>-42 38 0 ;   ;   ;   ;   ;   ;  <|action_end|>",
+              "is_noop": false,
+              "dropped": []
+            },
+            "execute": true,
+            "feedback": {
+              "changes": [],
+              "visual_difference": 1.61,
+              "stagnant_decisions": 4,
+              "noop_streak": 0,
+              "recoveries": 0,
+              "phase": "observing",
+              "screen_cycle_detected": false,
+              "executed": true
+            },
+            "recovery": {
+              "reset_history": false,
+              "pause": false,
+              "reason": "none"
+            }
+          }
+        },
+        {
+          "id": "observation-05",
+          "origin": "recorded-adjacent-observations",
+          "raw": "<think>\n\n</think>\n\n<|action_start|>-1 -1 0 ;   ;   ;   ;   ;   ;  <|action_end|>",
+          "latency_seconds": 1.33,
+          "before": {
+            "frame": "frame-022.png",
+            "sha256": "34293d7225b052dd34cd3445727bbeb70dad48ec284d970372f7d6e5acfedf8d",
+            "game": {
+              "connected": true,
+              "screen": "PauseScreen",
+              "health": 20.0,
+              "cursor": {
+                "x": 307,
+                "y": 288,
+                "button_mask": 0
+              },
+              "session": "fixture-session",
+              "x": 1.3201,
+              "y": -2.0,
+              "z": 5.3038,
+              "inventory": [
+                {
+                  "slot": 0,
+                  "item": "minecraft:dirt",
+                  "count": 16
+                }
+              ],
+              "target_block": {
+                "x": 1,
+                "y": -2,
+                "z": 7,
+                "block": "minecraft:dirt"
+              }
+            }
+          },
+          "after": {
+            "frame": "frame-023.png",
+            "sha256": "c981696a49ccbfed1875fbde963044b5efdef56f6abf1d1827b30c6f241ae352",
+            "game": {
+              "connected": true,
+              "screen": "PauseScreen",
+              "health": 20.0,
+              "cursor": {
+                "x": 306,
+                "y": 287,
+                "button_mask": 0
+              },
+              "session": "fixture-session",
+              "x": 1.3201,
+              "y": -2.0,
+              "z": 5.3038,
+              "inventory": [
+                {
+                  "slot": 0,
+                  "item": "minecraft:dirt",
+                  "count": 16
+                }
+              ],
+              "target_block": {
+                "x": 1,
+                "y": -2,
+                "z": 7,
+                "block": "minecraft:dirt"
+              }
+            }
+          },
+          "expected": {
+            "action": {
+              "parsed": true,
+              "truncated": false,
+              "mouse": [
+                -1.0,
+                -1.0,
+                0.0
+              ],
+              "steps": [
+                [],
+                [],
+                [],
+                [],
+                [],
+                []
+              ],
+              "history_text": "<|action_start|>-1 -1 0 ;   ;   ;   ;   ;   ;  <|action_end|>",
+              "is_noop": false,
+              "dropped": []
+            },
+            "execute": true,
+            "feedback": {
+              "changes": [],
+              "visual_difference": 0.0,
+              "stagnant_decisions": 5,
+              "noop_streak": 0,
+              "recoveries": 0,
+              "phase": "observing",
+              "screen_cycle_detected": false,
+              "executed": true
+            },
+            "recovery": {
+              "reset_history": false,
+              "pause": false,
+              "reason": "none"
+            }
+          }
+        },
+        {
+          "id": "observation-06",
+          "origin": "recorded-adjacent-observations",
+          "raw": "<think>\n\n</think>\n\n<|action_start|>0 -1 0 ;   ;   ;   ;   ;   ;  <|action_end|>",
+          "latency_seconds": 1.35,
+          "before": {
+            "frame": "frame-023.png",
+            "sha256": "c981696a49ccbfed1875fbde963044b5efdef56f6abf1d1827b30c6f241ae352",
+            "game": {
+              "connected": true,
+              "screen": "PauseScreen",
+              "health": 20.0,
+              "cursor": {
+                "x": 306,
+                "y": 287,
+                "button_mask": 0
+              },
+              "session": "fixture-session",
+              "x": 1.3201,
+              "y": -2.0,
+              "z": 5.3038,
+              "inventory": [
+                {
+                  "slot": 0,
+                  "item": "minecraft:dirt",
+                  "count": 16
+                }
+              ],
+              "target_block": {
+                "x": 1,
+                "y": -2,
+                "z": 7,
+                "block": "minecraft:dirt"
+              }
+            }
+          },
+          "after": {
+            "frame": "frame-024.png",
+            "sha256": "6b1a58c3f164a9e496ba1e91300e73066f0b4048e446d0e324d868314517bdf0",
+            "game": {
+              "connected": true,
+              "screen": "PauseScreen",
+              "health": 20.0,
+              "cursor": {
+                "x": 306,
+                "y": 287,
+                "button_mask": 0
+              },
+              "session": "fixture-session",
+              "x": 1.3201,
+              "y": -2.0,
+              "z": 5.3038,
+              "inventory": [
+                {
+                  "slot": 0,
+                  "item": "minecraft:dirt",
+                  "count": 16
+                }
+              ],
+              "target_block": {
+                "x": 1,
+                "y": -2,
+                "z": 7,
+                "block": "minecraft:dirt"
+              }
+            }
+          },
+          "expected": {
+            "action": {
+              "parsed": true,
+              "truncated": false,
+              "mouse": [
+                0.0,
+                -1.0,
+                0.0
+              ],
+              "steps": [
+                [],
+                [],
+                [],
+                [],
+                [],
+                []
+              ],
+              "history_text": "<|action_start|>0 -1 0 ;   ;   ;   ;   ;   ;  <|action_end|>",
+              "is_noop": false,
+              "dropped": []
+            },
+            "execute": true,
+            "feedback": {
+              "changes": [],
+              "visual_difference": 0.0,
+              "stagnant_decisions": 6,
+              "noop_streak": 0,
+              "recoveries": 1,
+              "phase": "reassess",
+              "screen_cycle_detected": false,
+              "executed": true
+            },
+            "recovery": {
+              "reset_history": true,
+              "pause": false,
+              "reason": "reassess"
+            }
+          }
+        },
+        {
+          "id": "observation-07",
+          "origin": "recorded-adjacent-observations",
+          "raw": "<think>\n\n</think>\n\n<|action_start|>-41 -121 0 ;   ;   ;   ;   ;   ;  <|action_end|>",
+          "latency_seconds": 0.73,
+          "before": {
+            "frame": "frame-024.png",
+            "sha256": "6b1a58c3f164a9e496ba1e91300e73066f0b4048e446d0e324d868314517bdf0",
+            "game": {
+              "connected": true,
+              "screen": "PauseScreen",
+              "health": 20.0,
+              "cursor": {
+                "x": 306,
+                "y": 287,
+                "button_mask": 0
+              },
+              "session": "fixture-session",
+              "x": 1.3201,
+              "y": -2.0,
+              "z": 5.3038,
+              "inventory": [
+                {
+                  "slot": 0,
+                  "item": "minecraft:dirt",
+                  "count": 16
+                }
+              ],
+              "target_block": {
+                "x": 1,
+                "y": -2,
+                "z": 7,
+                "block": "minecraft:dirt"
+              }
+            }
+          },
+          "after": {
+            "frame": "frame-025.png",
+            "sha256": "4e8644d995fa6aeadac88f0d823c10f57082ae2ee8a066bc9b68783973629e52",
+            "game": {
+              "connected": true,
+              "screen": "PauseScreen",
+              "health": 20.0,
+              "cursor": {
+                "x": 271,
+                "y": 228,
+                "button_mask": 0
+              },
+              "session": "fixture-session",
+              "x": 1.3201,
+              "y": -2.0,
+              "z": 5.3038,
+              "inventory": [
+                {
+                  "slot": 0,
+                  "item": "minecraft:dirt",
+                  "count": 16
+                }
+              ],
+              "target_block": {
+                "x": 1,
+                "y": -2,
+                "z": 7,
+                "block": "minecraft:dirt"
+              }
+            }
+          },
+          "expected": {
+            "action": {
+              "parsed": true,
+              "truncated": false,
+              "mouse": [
+                -41.0,
+                -121.0,
+                0.0
+              ],
+              "steps": [
+                [],
+                [],
+                [],
+                [],
+                [],
+                []
+              ],
+              "history_text": "<|action_start|>-41 -121 0 ;   ;   ;   ;   ;   ;  <|action_end|>",
+              "is_noop": false,
+              "dropped": []
+            },
+            "execute": true,
+            "feedback": {
+              "changes": [],
+              "visual_difference": 0.81,
+              "stagnant_decisions": 7,
+              "noop_streak": 0,
+              "recoveries": 1,
+              "phase": "reassess",
+              "screen_cycle_detected": false,
+              "executed": true
+            },
+            "recovery": {
+              "reset_history": false,
+              "pause": false,
+              "reason": "none"
+            }
+          }
+        },
+        {
+          "id": "observation-08",
+          "origin": "recorded-adjacent-observations",
+          "raw": "<think>\n\n</think>\n\n<|action_start|>-4 -1 0 ;   ;   ; LB ; LB ; LB ; LB<|action_end|>",
+          "latency_seconds": 0.88,
+          "before": {
+            "frame": "frame-025.png",
+            "sha256": "4e8644d995fa6aeadac88f0d823c10f57082ae2ee8a066bc9b68783973629e52",
+            "game": {
+              "connected": true,
+              "screen": "PauseScreen",
+              "health": 20.0,
+              "cursor": {
+                "x": 271,
+                "y": 228,
+                "button_mask": 0
+              },
+              "session": "fixture-session",
+              "x": 1.3201,
+              "y": -2.0,
+              "z": 5.3038,
+              "inventory": [
+                {
+                  "slot": 0,
+                  "item": "minecraft:dirt",
+                  "count": 16
+                }
+              ],
+              "target_block": {
+                "x": 1,
+                "y": -2,
+                "z": 7,
+                "block": "minecraft:dirt"
+              }
+            }
+          },
+          "after": {
+            "frame": "frame-026.png",
+            "sha256": "b969e1db92e4c34c9715542a96462896a4eb2508c31cea81a2eafbe22ddfa788",
+            "game": {
+              "connected": true,
+              "screen": "PauseScreen",
+              "health": 20.0,
+              "cursor": {
+                "x": 268,
+                "y": 228,
+                "button_mask": 0
+              },
+              "session": "fixture-session",
+              "x": 1.3201,
+              "y": -2.0,
+              "z": 5.3038,
+              "inventory": [
+                {
+                  "slot": 0,
+                  "item": "minecraft:dirt",
+                  "count": 16
+                }
+              ],
+              "target_block": {
+                "x": 1,
+                "y": -2,
+                "z": 7,
+                "block": "minecraft:dirt"
+              }
+            }
+          },
+          "expected": {
+            "action": {
+              "parsed": true,
+              "truncated": false,
+              "mouse": [
+                -4.0,
+                -1.0,
+                0.0
+              ],
+              "steps": [
+                [],
+                [],
+                [
+                  "LB"
+                ],
+                [
+                  "LB"
+                ],
+                [
+                  "LB"
+                ],
+                [
+                  "LB"
+                ]
+              ],
+              "history_text": "<|action_start|>-4 -1 0 ;   ;   ; LB ; LB ; LB ; LB<|action_end|>",
+              "is_noop": false,
+              "dropped": []
+            },
+            "execute": true,
+            "feedback": {
+              "changes": [],
+              "visual_difference": 0.0,
+              "stagnant_decisions": 8,
+              "noop_streak": 0,
+              "recoveries": 1,
+              "phase": "reassess",
+              "screen_cycle_detected": false,
+              "executed": true
+            },
+            "recovery": {
+              "reset_history": false,
+              "pause": false,
+              "reason": "none"
+            }
+          }
+        },
+        {
+          "id": "observation-09",
+          "origin": "recorded-adjacent-observations",
+          "raw": "<think>\n\n</think>\n\n<|action_start|>1 -9 0 ;   ;   ; LB ; LB ; LB ; LB<|action_end|>",
+          "latency_seconds": 1.04,
+          "before": {
+            "frame": "frame-026.png",
+            "sha256": "b969e1db92e4c34c9715542a96462896a4eb2508c31cea81a2eafbe22ddfa788",
+            "game": {
+              "connected": true,
+              "screen": "PauseScreen",
+              "health": 20.0,
+              "cursor": {
+                "x": 268,
+                "y": 228,
+                "button_mask": 0
+              },
+              "session": "fixture-session",
+              "x": 1.3201,
+              "y": -2.0,
+              "z": 5.3038,
+              "inventory": [
+                {
+                  "slot": 0,
+                  "item": "minecraft:dirt",
+                  "count": 16
+                }
+              ],
+              "target_block": {
+                "x": 1,
+                "y": -2,
+                "z": 7,
+                "block": "minecraft:dirt"
+              }
+            }
+          },
+          "after": {
+            "frame": "frame-027.png",
+            "sha256": "eb5f660435532bfbe8266cd22d8a60fa1810cad16c902bf8c4b047559d1028a9",
+            "game": {
+              "connected": true,
+              "screen": "PauseScreen",
+              "health": 20.0,
+              "cursor": {
+                "x": 269,
+                "y": 224,
+                "button_mask": 0
+              },
+              "session": "fixture-session",
+              "x": 1.3201,
+              "y": -2.0,
+              "z": 5.3038,
+              "inventory": [
+                {
+                  "slot": 0,
+                  "item": "minecraft:dirt",
+                  "count": 16
+                }
+              ],
+              "target_block": {
+                "x": 1,
+                "y": -2,
+                "z": 7,
+                "block": "minecraft:dirt"
+              }
+            }
+          },
+          "expected": {
+            "action": {
+              "parsed": true,
+              "truncated": false,
+              "mouse": [
+                1.0,
+                -9.0,
+                0.0
+              ],
+              "steps": [
+                [],
+                [],
+                [
+                  "LB"
+                ],
+                [
+                  "LB"
+                ],
+                [
+                  "LB"
+                ],
+                [
+                  "LB"
+                ]
+              ],
+              "history_text": "<|action_start|>1 -9 0 ;   ;   ; LB ; LB ; LB ; LB<|action_end|>",
+              "is_noop": false,
+              "dropped": []
+            },
+            "execute": true,
+            "feedback": {
+              "changes": [],
+              "visual_difference": 0.0,
+              "stagnant_decisions": 9,
+              "noop_streak": 0,
+              "recoveries": 1,
+              "phase": "reassess",
+              "screen_cycle_detected": false,
+              "executed": true
+            },
+            "recovery": {
+              "reset_history": false,
+              "pause": false,
+              "reason": "none"
+            }
+          }
+        },
+        {
+          "id": "observation-10",
+          "origin": "recorded-adjacent-observations",
+          "raw": "<think>\n\n</think>\n\n<|action_start|>0 0 0 ; LB ; LB ;   ;   ;   ;  <|action_end|>",
+          "latency_seconds": 1.2,
+          "before": {
+            "frame": "frame-027.png",
+            "sha256": "eb5f660435532bfbe8266cd22d8a60fa1810cad16c902bf8c4b047559d1028a9",
+            "game": {
+              "connected": true,
+              "screen": "PauseScreen",
+              "health": 20.0,
+              "cursor": {
+                "x": 269,
+                "y": 224,
+                "button_mask": 0
+              },
+              "session": "fixture-session",
+              "x": 1.3201,
+              "y": -2.0,
+              "z": 5.3038,
+              "inventory": [
+                {
+                  "slot": 0,
+                  "item": "minecraft:dirt",
+                  "count": 16
+                }
+              ],
+              "target_block": {
+                "x": 1,
+                "y": -2,
+                "z": 7,
+                "block": "minecraft:dirt"
+              }
+            }
+          },
+          "after": {
+            "frame": "frame-028.png",
+            "sha256": "eb5f660435532bfbe8266cd22d8a60fa1810cad16c902bf8c4b047559d1028a9",
+            "game": {
+              "connected": true,
+              "screen": "PauseScreen",
+              "health": 20.0,
+              "cursor": {
+                "x": 269,
+                "y": 224,
+                "button_mask": 0
+              },
+              "session": "fixture-session",
+              "x": 1.3201,
+              "y": -2.0,
+              "z": 5.3038,
+              "inventory": [
+                {
+                  "slot": 0,
+                  "item": "minecraft:dirt",
+                  "count": 16
+                }
+              ],
+              "target_block": {
+                "x": 1,
+                "y": -2,
+                "z": 7,
+                "block": "minecraft:dirt"
+              }
+            }
+          },
+          "expected": {
+            "action": {
+              "parsed": true,
+              "truncated": false,
+              "mouse": [
+                0.0,
+                0.0,
+                0.0
+              ],
+              "steps": [
+                [
+                  "LB"
+                ],
+                [
+                  "LB"
+                ],
+                [],
+                [],
+                [],
+                []
+              ],
+              "history_text": "<|action_start|>0 0 0 ; LB ; LB ;   ;   ;   ;  <|action_end|>",
+              "is_noop": false,
+              "dropped": []
+            },
+            "execute": true,
+            "feedback": {
+              "changes": [],
+              "visual_difference": 0.0,
+              "stagnant_decisions": 10,
+              "noop_streak": 0,
+              "recoveries": 1,
+              "phase": "reassess",
+              "screen_cycle_detected": false,
+              "executed": true
+            },
+            "recovery": {
+              "reset_history": false,
+              "pause": false,
+              "reason": "none"
+            }
+          }
+        },
+        {
+          "id": "observation-11",
+          "origin": "recorded-adjacent-observations",
+          "raw": "<think>\n\n</think>\n\n<|action_start|>0 0 0 ; LB ;   ;   ;   ;   ;  <|action_end|>",
+          "latency_seconds": 1.35,
+          "before": {
+            "frame": "frame-028.png",
+            "sha256": "eb5f660435532bfbe8266cd22d8a60fa1810cad16c902bf8c4b047559d1028a9",
+            "game": {
+              "connected": true,
+              "screen": "PauseScreen",
+              "health": 20.0,
+              "cursor": {
+                "x": 269,
+                "y": 224,
+                "button_mask": 0
+              },
+              "session": "fixture-session",
+              "x": 1.3201,
+              "y": -2.0,
+              "z": 5.3038,
+              "inventory": [
+                {
+                  "slot": 0,
+                  "item": "minecraft:dirt",
+                  "count": 16
+                }
+              ],
+              "target_block": {
+                "x": 1,
+                "y": -2,
+                "z": 7,
+                "block": "minecraft:dirt"
+              }
+            }
+          },
+          "after": {
+            "frame": "frame-029.png",
+            "sha256": "eb5f660435532bfbe8266cd22d8a60fa1810cad16c902bf8c4b047559d1028a9",
+            "game": {
+              "connected": true,
+              "screen": "PauseScreen",
+              "health": 20.0,
+              "cursor": {
+                "x": 269,
+                "y": 224,
+                "button_mask": 0
+              },
+              "session": "fixture-session",
+              "x": 1.3201,
+              "y": -2.0,
+              "z": 5.3038,
+              "inventory": [
+                {
+                  "slot": 0,
+                  "item": "minecraft:dirt",
+                  "count": 16
+                }
+              ],
+              "target_block": {
+                "x": 1,
+                "y": -2,
+                "z": 7,
+                "block": "minecraft:dirt"
+              }
+            }
+          },
+          "expected": {
+            "action": {
+              "parsed": true,
+              "truncated": false,
+              "mouse": [
+                0.0,
+                0.0,
+                0.0
+              ],
+              "steps": [
+                [
+                  "LB"
+                ],
+                [],
+                [],
+                [],
+                [],
+                []
+              ],
+              "history_text": "<|action_start|>0 0 0 ; LB ;   ;   ;   ;   ;  <|action_end|>",
+              "is_noop": false,
+              "dropped": []
+            },
+            "execute": true,
+            "feedback": {
+              "changes": [],
+              "visual_difference": 0.0,
+              "stagnant_decisions": 11,
+              "noop_streak": 0,
+              "recoveries": 1,
+              "phase": "reassess",
+              "screen_cycle_detected": false,
+              "executed": true
+            },
+            "recovery": {
+              "reset_history": false,
+              "pause": false,
+              "reason": "none"
+            }
+          }
+        },
+        {
+          "id": "observation-12",
+          "origin": "recorded-adjacent-observations",
+          "raw": "<think>\n\n</think>\n\n<|action_start|>8 15 0 ;   ; LB ; LB ; LB ; LB ; LB<|action_end|>",
+          "latency_seconds": 1.37,
+          "before": {
+            "frame": "frame-029.png",
+            "sha256": "eb5f660435532bfbe8266cd22d8a60fa1810cad16c902bf8c4b047559d1028a9",
+            "game": {
+              "connected": true,
+              "screen": "PauseScreen",
+              "health": 20.0,
+              "cursor": {
+                "x": 269,
+                "y": 224,
+                "button_mask": 0
+              },
+              "session": "fixture-session",
+              "x": 1.3201,
+              "y": -2.0,
+              "z": 5.3038,
+              "inventory": [
+                {
+                  "slot": 0,
+                  "item": "minecraft:dirt",
+                  "count": 16
+                }
+              ],
+              "target_block": {
+                "x": 1,
+                "y": -2,
+                "z": 7,
+                "block": "minecraft:dirt"
+              }
+            }
+          },
+          "after": {
+            "frame": "frame-030.png",
+            "sha256": "74d2639ba51f04fed4b6be7d03cc9a5707ac3c28a3563f635d7f38dc5cabd4d8",
+            "game": {
+              "connected": true,
+              "screen": "PauseScreen",
+              "health": 20.0,
+              "cursor": {
+                "x": 275,
+                "y": 231,
+                "button_mask": 0
+              },
+              "session": "fixture-session",
+              "x": 1.3201,
+              "y": -2.0,
+              "z": 5.3038,
+              "inventory": [
+                {
+                  "slot": 0,
+                  "item": "minecraft:dirt",
+                  "count": 16
+                }
+              ],
+              "target_block": {
+                "x": 1,
+                "y": -2,
+                "z": 7,
+                "block": "minecraft:dirt"
+              }
+            }
+          },
+          "expected": {
+            "action": {
+              "parsed": true,
+              "truncated": false,
+              "mouse": [
+                8.0,
+                15.0,
+                0.0
+              ],
+              "steps": [
+                [],
+                [
+                  "LB"
+                ],
+                [
+                  "LB"
+                ],
+                [
+                  "LB"
+                ],
+                [
+                  "LB"
+                ],
+                [
+                  "LB"
+                ]
+              ],
+              "history_text": "<|action_start|>8 15 0 ;   ; LB ; LB ; LB ; LB ; LB<|action_end|>",
+              "is_noop": false,
+              "dropped": []
+            },
+            "execute": true,
+            "feedback": {
+              "changes": [],
+              "visual_difference": 0.0,
+              "stagnant_decisions": 12,
+              "noop_streak": 0,
+              "recoveries": 2,
+              "phase": "reassess",
+              "screen_cycle_detected": false,
+              "executed": true
+            },
+            "recovery": {
+              "reset_history": true,
+              "pause": false,
+              "reason": "reassess"
+            }
+          }
+        },
+        {
+          "id": "observation-13",
+          "origin": "recorded-adjacent-observations",
+          "raw": "<think>\n\n</think>\n\n<|action_start|>-14 -16 0 ;   ;   ;   ;   ;   ;  <|action_end|>",
+          "latency_seconds": 0.73,
+          "before": {
+            "frame": "frame-030.png",
+            "sha256": "74d2639ba51f04fed4b6be7d03cc9a5707ac3c28a3563f635d7f38dc5cabd4d8",
+            "game": {
+              "connected": true,
+              "screen": "PauseScreen",
+              "health": 20.0,
+              "cursor": {
+                "x": 275,
+                "y": 231,
+                "button_mask": 0
+              },
+              "session": "fixture-session",
+              "x": 1.3201,
+              "y": -2.0,
+              "z": 5.3038,
+              "inventory": [
+                {
+                  "slot": 0,
+                  "item": "minecraft:dirt",
+                  "count": 16
+                }
+              ],
+              "target_block": {
+                "x": 1,
+                "y": -2,
+                "z": 7,
+                "block": "minecraft:dirt"
+              }
+            }
+          },
+          "after": {
+            "frame": "frame-031.png",
+            "sha256": "307ec2f93796d1bc298961129649ddea68552e56269c5ed50bb9085f6341bbc3",
+            "game": {
+              "connected": true,
+              "screen": "PauseScreen",
+              "health": 20.0,
+              "cursor": {
+                "x": 263,
+                "y": 223,
+                "button_mask": 0
+              },
+              "session": "fixture-session",
+              "x": 1.3201,
+              "y": -2.0,
+              "z": 5.3038,
+              "inventory": [
+                {
+                  "slot": 0,
+                  "item": "minecraft:dirt",
+                  "count": 16
+                }
+              ],
+              "target_block": {
+                "x": 1,
+                "y": -2,
+                "z": 7,
+                "block": "minecraft:dirt"
+              }
+            }
+          },
+          "expected": {
+            "action": {
+              "parsed": true,
+              "truncated": false,
+              "mouse": [
+                -14.0,
+                -16.0,
+                0.0
+              ],
+              "steps": [
+                [],
+                [],
+                [],
+                [],
+                [],
+                []
+              ],
+              "history_text": "<|action_start|>-14 -16 0 ;   ;   ;   ;   ;   ;  <|action_end|>",
+              "is_noop": false,
+              "dropped": []
+            },
+            "execute": true,
+            "feedback": {
+              "changes": [],
+              "visual_difference": 0.83,
+              "stagnant_decisions": 13,
+              "noop_streak": 0,
+              "recoveries": 2,
+              "phase": "reassess",
+              "screen_cycle_detected": false,
+              "executed": true
+            },
+            "recovery": {
+              "reset_history": false,
+              "pause": false,
+              "reason": "none"
+            }
+          }
+        },
+        {
+          "id": "observation-14",
+          "origin": "recorded-adjacent-observations",
+          "raw": "<think>\n\n</think>\n\n<|action_start|>9 15 0 ; LB ; LB ;   ; LB ; LB ; LB<|action_end|>",
+          "latency_seconds": 0.89,
+          "before": {
+            "frame": "frame-031.png",
+            "sha256": "307ec2f93796d1bc298961129649ddea68552e56269c5ed50bb9085f6341bbc3",
+            "game": {
+              "connected": true,
+              "screen": "PauseScreen",
+              "health": 20.0,
+              "cursor": {
+                "x": 263,
+                "y": 223,
+                "button_mask": 0
+              },
+              "session": "fixture-session",
+              "x": 1.3201,
+              "y": -2.0,
+              "z": 5.3038,
+              "inventory": [
+                {
+                  "slot": 0,
+                  "item": "minecraft:dirt",
+                  "count": 16
+                }
+              ],
+              "target_block": {
+                "x": 1,
+                "y": -2,
+                "z": 7,
+                "block": "minecraft:dirt"
+              }
+            }
+          },
+          "after": {
+            "frame": "frame-032.png",
+            "sha256": "00d97c3cd27258cd5a823f8793ac985f60c8e97c728842e153825a6419b02c69",
+            "game": {
+              "connected": true,
+              "screen": "PauseScreen",
+              "health": 20.0,
+              "cursor": {
+                "x": 271,
+                "y": 230,
+                "button_mask": 0
+              },
+              "session": "fixture-session",
+              "x": 1.3201,
+              "y": -2.0,
+              "z": 5.3038,
+              "inventory": [
+                {
+                  "slot": 0,
+                  "item": "minecraft:dirt",
+                  "count": 16
+                }
+              ],
+              "target_block": {
+                "x": 1,
+                "y": -2,
+                "z": 7,
+                "block": "minecraft:dirt"
+              }
+            }
+          },
+          "expected": {
+            "action": {
+              "parsed": true,
+              "truncated": false,
+              "mouse": [
+                9.0,
+                15.0,
+                0.0
+              ],
+              "steps": [
+                [
+                  "LB"
+                ],
+                [
+                  "LB"
+                ],
+                [],
+                [
+                  "LB"
+                ],
+                [
+                  "LB"
+                ],
+                [
+                  "LB"
+                ]
+              ],
+              "history_text": "<|action_start|>9 15 0 ; LB ; LB ;   ; LB ; LB ; LB<|action_end|>",
+              "is_noop": false,
+              "dropped": []
+            },
+            "execute": true,
+            "feedback": {
+              "changes": [],
+              "visual_difference": 0.83,
+              "stagnant_decisions": 14,
+              "noop_streak": 0,
+              "recoveries": 2,
+              "phase": "reassess",
+              "screen_cycle_detected": false,
+              "executed": true
+            },
+            "recovery": {
+              "reset_history": false,
+              "pause": false,
+              "reason": "none"
+            }
+          }
+        },
+        {
+          "id": "observation-15",
+          "origin": "recorded-adjacent-observations",
+          "raw": "<think>\n\n</think>\n\n<|action_start|>0 1 0 ; LB ; LB ;   ;   ;   ;  <|action_end|>",
+          "latency_seconds": 1.04,
+          "before": {
+            "frame": "frame-032.png",
+            "sha256": "00d97c3cd27258cd5a823f8793ac985f60c8e97c728842e153825a6419b02c69",
+            "game": {
+              "connected": true,
+              "screen": "PauseScreen",
+              "health": 20.0,
+              "cursor": {
+                "x": 271,
+                "y": 230,
+                "button_mask": 0
+              },
+              "session": "fixture-session",
+              "x": 1.3201,
+              "y": -2.0,
+              "z": 5.3038,
+              "inventory": [
+                {
+                  "slot": 0,
+                  "item": "minecraft:dirt",
+                  "count": 16
+                }
+              ],
+              "target_block": {
+                "x": 1,
+                "y": -2,
+                "z": 7,
+                "block": "minecraft:dirt"
+              }
+            }
+          },
+          "after": {
+            "frame": "frame-033.png",
+            "sha256": "a70898d252d83fb2aec186c7f942a7e3f3e2f13e59c63eecc8bf3619e31ef13f",
+            "game": {
+              "connected": true,
+              "screen": "PauseScreen",
+              "health": 20.0,
+              "cursor": {
+                "x": 271,
+                "y": 231,
+                "button_mask": 0
+              },
+              "session": "fixture-session",
+              "x": 1.3201,
+              "y": -2.0,
+              "z": 5.3038,
+              "inventory": [
+                {
+                  "slot": 0,
+                  "item": "minecraft:dirt",
+                  "count": 16
+                }
+              ],
+              "target_block": {
+                "x": 1,
+                "y": -2,
+                "z": 7,
+                "block": "minecraft:dirt"
+              }
+            }
+          },
+          "expected": {
+            "action": {
+              "parsed": true,
+              "truncated": false,
+              "mouse": [
+                0.0,
+                1.0,
+                0.0
+              ],
+              "steps": [
+                [
+                  "LB"
+                ],
+                [
+                  "LB"
+                ],
+                [],
+                [],
+                [],
+                []
+              ],
+              "history_text": "<|action_start|>0 1 0 ; LB ; LB ;   ;   ;   ;  <|action_end|>",
+              "is_noop": false,
+              "dropped": []
+            },
+            "execute": true,
+            "feedback": {
+              "changes": [],
+              "visual_difference": 0.0,
+              "stagnant_decisions": 15,
+              "noop_streak": 0,
+              "recoveries": 2,
+              "phase": "reassess",
+              "screen_cycle_detected": false,
+              "executed": true
+            },
+            "recovery": {
+              "reset_history": false,
+              "pause": false,
+              "reason": "none"
+            }
+          }
+        },
+        {
+          "id": "observation-16",
+          "origin": "recorded-adjacent-observations",
+          "raw": "<think>\n\n</think>\n\n<|action_start|>155 508 0 ;   ;   ;   ; LB ; LB ; LB<|action_end|>",
+          "latency_seconds": 1.21,
+          "before": {
+            "frame": "frame-033.png",
+            "sha256": "a70898d252d83fb2aec186c7f942a7e3f3e2f13e59c63eecc8bf3619e31ef13f",
+            "game": {
+              "connected": true,
+              "screen": "PauseScreen",
+              "health": 20.0,
+              "cursor": {
+                "x": 271,
+                "y": 231,
+                "button_mask": 0
+              },
+              "session": "fixture-session",
+              "x": 1.3201,
+              "y": -2.0,
+              "z": 5.3038,
+              "inventory": [
+                {
+                  "slot": 0,
+                  "item": "minecraft:dirt",
+                  "count": 16
+                }
+              ],
+              "target_block": {
+                "x": 1,
+                "y": -2,
+                "z": 7,
+                "block": "minecraft:dirt"
+              }
+            }
+          },
+          "after": {
+            "frame": "frame-034.png",
+            "sha256": "facdcfcc15c76645deb4a2dec6a893fd21538db06acb5140e1003566184fa232",
+            "game": {
+              "connected": true,
+              "screen": "PauseScreen",
+              "health": 20.0,
+              "cursor": {
+                "x": 403,
+                "y": 475,
+                "button_mask": 0
+              },
+              "session": "fixture-session",
+              "x": 1.3201,
+              "y": -2.0,
+              "z": 5.3038,
+              "inventory": [
+                {
+                  "slot": 0,
+                  "item": "minecraft:dirt",
+                  "count": 16
+                }
+              ],
+              "target_block": {
+                "x": 1,
+                "y": -2,
+                "z": 7,
+                "block": "minecraft:dirt"
+              }
+            }
+          },
+          "expected": {
+            "action": {
+              "parsed": true,
+              "truncated": false,
+              "mouse": [
+                155.0,
+                508.0,
+                0.0
+              ],
+              "steps": [
+                [],
+                [],
+                [],
+                [
+                  "LB"
+                ],
+                [
+                  "LB"
+                ],
+                [
+                  "LB"
+                ]
+              ],
+              "history_text": "<|action_start|>155 508 0 ;   ;   ;   ; LB ; LB ; LB<|action_end|>",
+              "is_noop": false,
+              "dropped": []
+            },
+            "execute": true,
+            "feedback": {
+              "changes": [],
+              "visual_difference": 0.03,
+              "stagnant_decisions": 16,
+              "noop_streak": 0,
+              "recoveries": 2,
+              "phase": "reassess",
+              "screen_cycle_detected": false,
+              "executed": true
+            },
+            "recovery": {
+              "reset_history": false,
+              "pause": false,
+              "reason": "none"
+            }
+          }
+        },
+        {
+          "id": "observation-17",
+          "origin": "recorded-adjacent-observations",
+          "raw": "<think>\n\n</think>\n\n<|action_start|>-342 -103 0 ; LB ;   ;   ;   ;   ;  <|action_end|>",
+          "latency_seconds": 1.37,
+          "before": {
+            "frame": "frame-034.png",
+            "sha256": "facdcfcc15c76645deb4a2dec6a893fd21538db06acb5140e1003566184fa232",
+            "game": {
+              "connected": true,
+              "screen": "PauseScreen",
+              "health": 20.0,
+              "cursor": {
+                "x": 403,
+                "y": 475,
+                "button_mask": 0
+              },
+              "session": "fixture-session",
+              "x": 1.3201,
+              "y": -2.0,
+              "z": 5.3038,
+              "inventory": [
+                {
+                  "slot": 0,
+                  "item": "minecraft:dirt",
+                  "count": 16
+                }
+              ],
+              "target_block": {
+                "x": 1,
+                "y": -2,
+                "z": 7,
+                "block": "minecraft:dirt"
+              }
+            }
+          },
+          "after": {
+            "frame": "frame-035.png",
+            "sha256": "facdcfcc15c76645deb4a2dec6a893fd21538db06acb5140e1003566184fa232",
+            "game": {
+              "connected": true,
+              "screen": "PauseScreen",
+              "health": 20.0,
+              "cursor": {
+                "x": 111,
+                "y": 425,
+                "button_mask": 0
+              },
+              "session": "fixture-session",
+              "x": 1.3201,
+              "y": -2.0,
+              "z": 5.3038,
+              "inventory": [
+                {
+                  "slot": 0,
+                  "item": "minecraft:dirt",
+                  "count": 16
+                }
+              ],
+              "target_block": {
+                "x": 1,
+                "y": -2,
+                "z": 7,
+                "block": "minecraft:dirt"
+              }
+            }
+          },
+          "expected": {
+            "action": {
+              "parsed": true,
+              "truncated": false,
+              "mouse": [
+                -342.0,
+                -103.0,
+                0.0
+              ],
+              "steps": [
+                [
+                  "LB"
+                ],
+                [],
+                [],
+                [],
+                [],
+                []
+              ],
+              "history_text": "<|action_start|>-342 -103 0 ; LB ;   ;   ;   ;   ;  <|action_end|>",
+              "is_noop": false,
+              "dropped": []
+            },
+            "execute": true,
+            "feedback": {
+              "changes": [],
+              "visual_difference": 0.0,
+              "stagnant_decisions": 17,
+              "noop_streak": 0,
+              "recoveries": 2,
+              "phase": "reassess",
+              "screen_cycle_detected": false,
+              "executed": true
+            },
+            "recovery": {
+              "reset_history": false,
+              "pause": false,
+              "reason": "none"
+            }
+          }
+        },
+        {
+          "id": "authored-final-unchanged-frame",
+          "origin": "authored-boundary-extension",
+          "raw": "<think>\n\n</think>\n\n<|action_start|>-14 -83 0 ;   ;   ;   ;   ;   ;  <|action_end|>",
+          "before": {
+            "frame": "frame-035.png",
+            "sha256": "facdcfcc15c76645deb4a2dec6a893fd21538db06acb5140e1003566184fa232",
+            "game": {
+              "connected": true,
+              "screen": "PauseScreen",
+              "health": 20.0,
+              "cursor": {
+                "x": 111,
+                "y": 425,
+                "button_mask": 0
+              },
+              "session": "fixture-session",
+              "x": 1.3201,
+              "y": -2.0,
+              "z": 5.3038,
+              "inventory": [
+                {
+                  "slot": 0,
+                  "item": "minecraft:dirt",
+                  "count": 16
+                }
+              ],
+              "target_block": {
+                "x": 1,
+                "y": -2,
+                "z": 7,
+                "block": "minecraft:dirt"
+              }
+            }
+          },
+          "after": {
+            "frame": "frame-035.png",
+            "sha256": "facdcfcc15c76645deb4a2dec6a893fd21538db06acb5140e1003566184fa232",
+            "game": {
+              "connected": true,
+              "screen": "PauseScreen",
+              "health": 20.0,
+              "cursor": {
+                "x": 111,
+                "y": 425,
+                "button_mask": 0
+              },
+              "session": "fixture-session",
+              "x": 1.3201,
+              "y": -2.0,
+              "z": 5.3038,
+              "inventory": [
+                {
+                  "slot": 0,
+                  "item": "minecraft:dirt",
+                  "count": 16
+                }
+              ],
+              "target_block": {
+                "x": 1,
+                "y": -2,
+                "z": 7,
+                "block": "minecraft:dirt"
+              }
+            }
+          },
+          "expected": {
+            "action": {
+              "parsed": true,
+              "truncated": false,
+              "mouse": [
+                -14.0,
+                -83.0,
+                0.0
+              ],
+              "steps": [
+                [],
+                [],
+                [],
+                [],
+                [],
+                []
+              ],
+              "history_text": "<|action_start|>-14 -83 0 ;   ;   ;   ;   ;   ;  <|action_end|>",
+              "is_noop": false,
+              "dropped": []
+            },
+            "execute": true,
+            "feedback": {
+              "changes": [],
+              "visual_difference": 0.0,
+              "stagnant_decisions": 18,
+              "noop_streak": 0,
+              "recoveries": 3,
+              "phase": "stalled",
+              "screen_cycle_detected": false,
+              "executed": true
+            },
+            "recovery": {
+              "reset_history": true,
+              "pause": true,
+              "reason": "stalled"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "safety-boundaries",
+      "settings": {},
+      "cases": [
+        {
+          "id": "cancelled",
+          "origin": "authored-safety-perturbation-of-recorded-output",
+          "raw": "<think>\n\n</think>\n\n<|action_start|>0 0 0 ;   ;   ;   ;   ;   ;  <|action_end|>",
+          "gate": {
+            "enabled": true,
+            "epoch_matches": false,
+            "session_matches": true
+          },
+          "acknowledged": true,
+          "before": {
+            "frame": "frame-020.png",
+            "sha256": "1cee545ca980bba180d23cbe8d6d25ff8a0f0c95404e9992111bd0d2bd63f58d",
+            "game": {
+              "connected": true,
+              "screen": "PauseScreen",
+              "health": 20.0,
+              "cursor": {
+                "x": 356,
+                "y": 268,
+                "button_mask": 0
+              },
+              "session": "fixture-session",
+              "x": 1.3201,
+              "y": -2.0,
+              "z": 5.3038,
+              "inventory": [
+                {
+                  "slot": 0,
+                  "item": "minecraft:dirt",
+                  "count": 16
+                }
+              ],
+              "target_block": {
+                "x": 1,
+                "y": -2,
+                "z": 7,
+                "block": "minecraft:dirt"
+              }
+            }
+          },
+          "after": {
+            "frame": "frame-020.png",
+            "sha256": "1cee545ca980bba180d23cbe8d6d25ff8a0f0c95404e9992111bd0d2bd63f58d",
+            "game": {
+              "connected": true,
+              "screen": "PauseScreen",
+              "health": 20.0,
+              "cursor": {
+                "x": 356,
+                "y": 268,
+                "button_mask": 0
+              },
+              "session": "fixture-session",
+              "x": 1.3201,
+              "y": -2.0,
+              "z": 5.3038,
+              "inventory": [
+                {
+                  "slot": 0,
+                  "item": "minecraft:dirt",
+                  "count": 16
+                }
+              ],
+              "target_block": {
+                "x": 1,
+                "y": -2,
+                "z": 7,
+                "block": "minecraft:dirt"
+              }
+            }
+          },
+          "expected": {
+            "action": {
+              "parsed": true,
+              "truncated": false,
+              "mouse": [
+                0.0,
+                0.0,
+                0.0
+              ],
+              "steps": [
+                [],
+                [],
+                [],
+                [],
+                [],
+                []
+              ],
+              "history_text": "<|action_start|>0 0 0 ;   ;   ;   ;   ;   ;  <|action_end|>",
+              "is_noop": true,
+              "dropped": []
+            },
+            "execute": false,
+            "feedback": {
+              "changes": [],
+              "visual_difference": 0.0,
+              "stagnant_decisions": 0,
+              "noop_streak": 0,
+              "recoveries": 0,
+              "phase": "observing",
+              "executed": false
+            },
+            "recovery": {
+              "reset_history": false,
+              "pause": false,
+              "reason": "none"
+            }
+          }
+        },
+        {
+          "id": "reconnected",
+          "origin": "authored-safety-perturbation-of-recorded-output",
+          "raw": "<think>\n\n</think>\n\n<|action_start|>0 0 0 ;   ;   ;   ;   ;   ;  <|action_end|>",
+          "gate": {
+            "enabled": true,
+            "epoch_matches": true,
+            "session_matches": false
+          },
+          "acknowledged": true,
+          "before": {
+            "frame": "frame-020.png",
+            "sha256": "1cee545ca980bba180d23cbe8d6d25ff8a0f0c95404e9992111bd0d2bd63f58d",
+            "game": {
+              "connected": true,
+              "screen": "PauseScreen",
+              "health": 20.0,
+              "cursor": {
+                "x": 356,
+                "y": 268,
+                "button_mask": 0
+              },
+              "session": "fixture-session",
+              "x": 1.3201,
+              "y": -2.0,
+              "z": 5.3038,
+              "inventory": [
+                {
+                  "slot": 0,
+                  "item": "minecraft:dirt",
+                  "count": 16
+                }
+              ],
+              "target_block": {
+                "x": 1,
+                "y": -2,
+                "z": 7,
+                "block": "minecraft:dirt"
+              }
+            }
+          },
+          "after": {
+            "frame": "frame-020.png",
+            "sha256": "1cee545ca980bba180d23cbe8d6d25ff8a0f0c95404e9992111bd0d2bd63f58d",
+            "game": {
+              "connected": true,
+              "screen": "PauseScreen",
+              "health": 20.0,
+              "cursor": {
+                "x": 356,
+                "y": 268,
+                "button_mask": 0
+              },
+              "session": "fixture-session",
+              "x": 1.3201,
+              "y": -2.0,
+              "z": 5.3038,
+              "inventory": [
+                {
+                  "slot": 0,
+                  "item": "minecraft:dirt",
+                  "count": 16
+                }
+              ],
+              "target_block": {
+                "x": 1,
+                "y": -2,
+                "z": 7,
+                "block": "minecraft:dirt"
+              }
+            }
+          },
+          "expected": {
+            "action": {
+              "parsed": true,
+              "truncated": false,
+              "mouse": [
+                0.0,
+                0.0,
+                0.0
+              ],
+              "steps": [
+                [],
+                [],
+                [],
+                [],
+                [],
+                []
+              ],
+              "history_text": "<|action_start|>0 0 0 ;   ;   ;   ;   ;   ;  <|action_end|>",
+              "is_noop": true,
+              "dropped": []
+            },
+            "execute": false,
+            "feedback": {
+              "changes": [],
+              "visual_difference": 0.0,
+              "stagnant_decisions": 0,
+              "noop_streak": 0,
+              "recoveries": 0,
+              "phase": "observing",
+              "executed": false
+            },
+            "recovery": {
+              "reset_history": false,
+              "pause": false,
+              "reason": "none"
+            }
+          }
+        },
+        {
+          "id": "paused",
+          "origin": "authored-safety-perturbation-of-recorded-output",
+          "raw": "<think>\n\n</think>\n\n<|action_start|>0 0 0 ;   ;   ;   ;   ;   ;  <|action_end|>",
+          "gate": {
+            "enabled": false,
+            "epoch_matches": true,
+            "session_matches": true
+          },
+          "acknowledged": true,
+          "before": {
+            "frame": "frame-020.png",
+            "sha256": "1cee545ca980bba180d23cbe8d6d25ff8a0f0c95404e9992111bd0d2bd63f58d",
+            "game": {
+              "connected": true,
+              "screen": "PauseScreen",
+              "health": 20.0,
+              "cursor": {
+                "x": 356,
+                "y": 268,
+                "button_mask": 0
+              },
+              "session": "fixture-session",
+              "x": 1.3201,
+              "y": -2.0,
+              "z": 5.3038,
+              "inventory": [
+                {
+                  "slot": 0,
+                  "item": "minecraft:dirt",
+                  "count": 16
+                }
+              ],
+              "target_block": {
+                "x": 1,
+                "y": -2,
+                "z": 7,
+                "block": "minecraft:dirt"
+              }
+            }
+          },
+          "after": {
+            "frame": "frame-020.png",
+            "sha256": "1cee545ca980bba180d23cbe8d6d25ff8a0f0c95404e9992111bd0d2bd63f58d",
+            "game": {
+              "connected": true,
+              "screen": "PauseScreen",
+              "health": 20.0,
+              "cursor": {
+                "x": 356,
+                "y": 268,
+                "button_mask": 0
+              },
+              "session": "fixture-session",
+              "x": 1.3201,
+              "y": -2.0,
+              "z": 5.3038,
+              "inventory": [
+                {
+                  "slot": 0,
+                  "item": "minecraft:dirt",
+                  "count": 16
+                }
+              ],
+              "target_block": {
+                "x": 1,
+                "y": -2,
+                "z": 7,
+                "block": "minecraft:dirt"
+              }
+            }
+          },
+          "expected": {
+            "action": {
+              "parsed": true,
+              "truncated": false,
+              "mouse": [
+                0.0,
+                0.0,
+                0.0
+              ],
+              "steps": [
+                [],
+                [],
+                [],
+                [],
+                [],
+                []
+              ],
+              "history_text": "<|action_start|>0 0 0 ;   ;   ;   ;   ;   ;  <|action_end|>",
+              "is_noop": true,
+              "dropped": []
+            },
+            "execute": false,
+            "feedback": {
+              "changes": [],
+              "visual_difference": 0.0,
+              "stagnant_decisions": 0,
+              "noop_streak": 0,
+              "recoveries": 0,
+              "phase": "observing",
+              "executed": false
+            },
+            "recovery": {
+              "reset_history": false,
+              "pause": false,
+              "reason": "none"
+            }
+          }
+        },
+        {
+          "id": "unacknowledged",
+          "origin": "authored-safety-perturbation-of-recorded-output",
+          "raw": "<think>\n\n</think>\n\n<|action_start|>0 0 0 ;   ;   ;   ;   ;   ;  <|action_end|>",
+          "gate": {
+            "enabled": true,
+            "epoch_matches": true,
+            "session_matches": true
+          },
+          "acknowledged": false,
+          "before": {
+            "frame": "frame-020.png",
+            "sha256": "1cee545ca980bba180d23cbe8d6d25ff8a0f0c95404e9992111bd0d2bd63f58d",
+            "game": {
+              "connected": true,
+              "screen": "PauseScreen",
+              "health": 20.0,
+              "cursor": {
+                "x": 356,
+                "y": 268,
+                "button_mask": 0
+              },
+              "session": "fixture-session",
+              "x": 1.3201,
+              "y": -2.0,
+              "z": 5.3038,
+              "inventory": [
+                {
+                  "slot": 0,
+                  "item": "minecraft:dirt",
+                  "count": 16
+                }
+              ],
+              "target_block": {
+                "x": 1,
+                "y": -2,
+                "z": 7,
+                "block": "minecraft:dirt"
+              }
+            }
+          },
+          "after": {
+            "frame": "frame-020.png",
+            "sha256": "1cee545ca980bba180d23cbe8d6d25ff8a0f0c95404e9992111bd0d2bd63f58d",
+            "game": {
+              "connected": true,
+              "screen": "PauseScreen",
+              "health": 20.0,
+              "cursor": {
+                "x": 356,
+                "y": 268,
+                "button_mask": 0
+              },
+              "session": "fixture-session",
+              "x": 1.3201,
+              "y": -2.0,
+              "z": 5.3038,
+              "inventory": [
+                {
+                  "slot": 0,
+                  "item": "minecraft:dirt",
+                  "count": 16
+                }
+              ],
+              "target_block": {
+                "x": 1,
+                "y": -2,
+                "z": 7,
+                "block": "minecraft:dirt"
+              }
+            }
+          },
+          "expected": {
+            "action": {
+              "parsed": true,
+              "truncated": false,
+              "mouse": [
+                0.0,
+                0.0,
+                0.0
+              ],
+              "steps": [
+                [],
+                [],
+                [],
+                [],
+                [],
+                []
+              ],
+              "history_text": "<|action_start|>0 0 0 ;   ;   ;   ;   ;   ;  <|action_end|>",
+              "is_noop": true,
+              "dropped": []
+            },
+            "execute": true,
+            "feedback": {
+              "changes": [],
+              "visual_difference": 0.0,
+              "stagnant_decisions": 0,
+              "noop_streak": 0,
+              "recoveries": 0,
+              "phase": "observing",
+              "executed": false
+            },
+            "recovery": {
+              "reset_history": false,
+              "pause": false,
+              "reason": "none"
+            }
+          }
+        },
+        {
+          "id": "unclosed-thought",
+          "origin": "authored-safety-perturbation-of-recorded-output",
+          "raw": "<think>quoted <|action_start|>0 0 0 ; LB ; LB ; LB ; LB ; LB ; LB<|action_end|>",
+          "gate": {
+            "enabled": true,
+            "epoch_matches": true,
+            "session_matches": true
+          },
+          "acknowledged": true,
+          "before": {
+            "frame": "frame-020.png",
+            "sha256": "1cee545ca980bba180d23cbe8d6d25ff8a0f0c95404e9992111bd0d2bd63f58d",
+            "game": {
+              "connected": true,
+              "screen": "PauseScreen",
+              "health": 20.0,
+              "cursor": {
+                "x": 356,
+                "y": 268,
+                "button_mask": 0
+              },
+              "session": "fixture-session",
+              "x": 1.3201,
+              "y": -2.0,
+              "z": 5.3038,
+              "inventory": [
+                {
+                  "slot": 0,
+                  "item": "minecraft:dirt",
+                  "count": 16
+                }
+              ],
+              "target_block": {
+                "x": 1,
+                "y": -2,
+                "z": 7,
+                "block": "minecraft:dirt"
+              }
+            }
+          },
+          "after": {
+            "frame": "frame-020.png",
+            "sha256": "1cee545ca980bba180d23cbe8d6d25ff8a0f0c95404e9992111bd0d2bd63f58d",
+            "game": {
+              "connected": true,
+              "screen": "PauseScreen",
+              "health": 20.0,
+              "cursor": {
+                "x": 356,
+                "y": 268,
+                "button_mask": 0
+              },
+              "session": "fixture-session",
+              "x": 1.3201,
+              "y": -2.0,
+              "z": 5.3038,
+              "inventory": [
+                {
+                  "slot": 0,
+                  "item": "minecraft:dirt",
+                  "count": 16
+                }
+              ],
+              "target_block": {
+                "x": 1,
+                "y": -2,
+                "z": 7,
+                "block": "minecraft:dirt"
+              }
+            }
+          },
+          "expected": {
+            "action": {
+              "parsed": false,
+              "truncated": true,
+              "mouse": [
+                0.0,
+                0.0,
+                0.0
+              ],
+              "steps": [
+                [],
+                [],
+                [],
+                [],
+                [],
+                []
+              ],
+              "history_text": "<|action_start|>0 0 0 ; ; ; ; ; ; <|action_end|>",
+              "is_noop": true,
+              "dropped": []
+            },
+            "execute": false,
+            "feedback": {
+              "changes": [],
+              "visual_difference": 0.0,
+              "stagnant_decisions": 0,
+              "noop_streak": 0,
+              "recoveries": 0,
+              "phase": "observing",
+              "executed": false
+            },
+            "recovery": {
+              "reset_history": false,
+              "pause": false,
+              "reason": "none"
+            }
+          }
+        },
+        {
+          "id": "incomplete-action",
+          "origin": "authored-safety-perturbation-of-recorded-output",
+          "raw": "<think>\n\n</think>\n\n<|action_start|>0 0 0 ; LB ; LB ; LB ; LB ; LB ; LB",
+          "gate": {
+            "enabled": true,
+            "epoch_matches": true,
+            "session_matches": true
+          },
+          "acknowledged": true,
+          "before": {
+            "frame": "frame-020.png",
+            "sha256": "1cee545ca980bba180d23cbe8d6d25ff8a0f0c95404e9992111bd0d2bd63f58d",
+            "game": {
+              "connected": true,
+              "screen": "PauseScreen",
+              "health": 20.0,
+              "cursor": {
+                "x": 356,
+                "y": 268,
+                "button_mask": 0
+              },
+              "session": "fixture-session",
+              "x": 1.3201,
+              "y": -2.0,
+              "z": 5.3038,
+              "inventory": [
+                {
+                  "slot": 0,
+                  "item": "minecraft:dirt",
+                  "count": 16
+                }
+              ],
+              "target_block": {
+                "x": 1,
+                "y": -2,
+                "z": 7,
+                "block": "minecraft:dirt"
+              }
+            }
+          },
+          "after": {
+            "frame": "frame-020.png",
+            "sha256": "1cee545ca980bba180d23cbe8d6d25ff8a0f0c95404e9992111bd0d2bd63f58d",
+            "game": {
+              "connected": true,
+              "screen": "PauseScreen",
+              "health": 20.0,
+              "cursor": {
+                "x": 356,
+                "y": 268,
+                "button_mask": 0
+              },
+              "session": "fixture-session",
+              "x": 1.3201,
+              "y": -2.0,
+              "z": 5.3038,
+              "inventory": [
+                {
+                  "slot": 0,
+                  "item": "minecraft:dirt",
+                  "count": 16
+                }
+              ],
+              "target_block": {
+                "x": 1,
+                "y": -2,
+                "z": 7,
+                "block": "minecraft:dirt"
+              }
+            }
+          },
+          "expected": {
+            "action": {
+              "parsed": false,
+              "truncated": false,
+              "mouse": [
+                0.0,
+                0.0,
+                0.0
+              ],
+              "steps": [
+                [],
+                [],
+                [],
+                [],
+                [],
+                []
+              ],
+              "history_text": "<|action_start|>0 0 0 ; ; ; ; ; ; <|action_end|>",
+              "is_noop": true,
+              "dropped": []
+            },
+            "execute": false,
+            "feedback": {
+              "changes": [],
+              "visual_difference": 0.0,
+              "stagnant_decisions": 0,
+              "noop_streak": 0,
+              "recoveries": 0,
+              "phase": "observing",
+              "executed": false
+            },
+            "recovery": {
+              "reset_history": false,
+              "pause": false,
+              "reason": "none"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "two-screen-cycle",
+      "settings": {
+        "stalled_decisions": 2,
+        "recovery_attempts": 1
+      },
+      "cases": [
+        {
+          "id": "alternation-01",
+          "origin": "authored-screen-sensor-perturbation",
+          "raw": "<think>\n\n</think>\n\n<|action_start|>0 0 0 ;   ;   ;   ;   ;   ;  <|action_end|>",
+          "before": {
+            "frame": "frame-020.png",
+            "sha256": "1cee545ca980bba180d23cbe8d6d25ff8a0f0c95404e9992111bd0d2bd63f58d",
+            "game": {
+              "connected": true,
+              "screen": "",
+              "health": 20.0,
+              "cursor": {
+                "x": 356,
+                "y": 268,
+                "button_mask": 0
+              },
+              "session": "fixture-session",
+              "x": 1.3201,
+              "y": -2.0,
+              "z": 5.3038,
+              "inventory": [
+                {
+                  "slot": 0,
+                  "item": "minecraft:dirt",
+                  "count": 16
+                }
+              ],
+              "target_block": {
+                "x": 1,
+                "y": -2,
+                "z": 7,
+                "block": "minecraft:dirt"
+              },
+              "screen_known": true
+            }
+          },
+          "after": {
+            "frame": "frame-020.png",
+            "sha256": "1cee545ca980bba180d23cbe8d6d25ff8a0f0c95404e9992111bd0d2bd63f58d",
+            "game": {
+              "connected": true,
+              "screen": "InventoryScreen",
+              "health": 20.0,
+              "cursor": {
+                "x": 356,
+                "y": 268,
+                "button_mask": 0
+              },
+              "session": "fixture-session",
+              "x": 1.3201,
+              "y": -2.0,
+              "z": 5.3038,
+              "inventory": [
+                {
+                  "slot": 0,
+                  "item": "minecraft:dirt",
+                  "count": 16
+                }
+              ],
+              "target_block": {
+                "x": 1,
+                "y": -2,
+                "z": 7,
+                "block": "minecraft:dirt"
+              },
+              "screen_known": true
+            }
+          },
+          "expected": {
+            "action": {
+              "parsed": true,
+              "truncated": false,
+              "mouse": [
+                0.0,
+                0.0,
+                0.0
+              ],
+              "steps": [
+                [],
+                [],
+                [],
+                [],
+                [],
+                []
+              ],
+              "history_text": "<|action_start|>0 0 0 ;   ;   ;   ;   ;   ;  <|action_end|>",
+              "is_noop": true,
+              "dropped": []
+            },
+            "execute": true,
+            "feedback": {
+              "changes": [
+                "screen changed"
+              ],
+              "visual_difference": 0.0,
+              "stagnant_decisions": 0,
+              "noop_streak": 1,
+              "recoveries": 0,
+              "phase": "observing",
+              "screen_cycle_detected": false,
+              "executed": true
+            },
+            "recovery": {
+              "reset_history": false,
+              "pause": false,
+              "reason": "none"
+            }
+          }
+        },
+        {
+          "id": "alternation-02",
+          "origin": "authored-screen-sensor-perturbation",
+          "raw": "<think>\n\n</think>\n\n<|action_start|>0 0 0 ;   ;   ;   ;   ;   ;  <|action_end|>",
+          "before": {
+            "frame": "frame-020.png",
+            "sha256": "1cee545ca980bba180d23cbe8d6d25ff8a0f0c95404e9992111bd0d2bd63f58d",
+            "game": {
+              "connected": true,
+              "screen": "InventoryScreen",
+              "health": 20.0,
+              "cursor": {
+                "x": 356,
+                "y": 268,
+                "button_mask": 0
+              },
+              "session": "fixture-session",
+              "x": 1.3201,
+              "y": -2.0,
+              "z": 5.3038,
+              "inventory": [
+                {
+                  "slot": 0,
+                  "item": "minecraft:dirt",
+                  "count": 16
+                }
+              ],
+              "target_block": {
+                "x": 1,
+                "y": -2,
+                "z": 7,
+                "block": "minecraft:dirt"
+              },
+              "screen_known": true
+            }
+          },
+          "after": {
+            "frame": "frame-020.png",
+            "sha256": "1cee545ca980bba180d23cbe8d6d25ff8a0f0c95404e9992111bd0d2bd63f58d",
+            "game": {
+              "connected": true,
+              "screen": "",
+              "health": 20.0,
+              "cursor": {
+                "x": 356,
+                "y": 268,
+                "button_mask": 0
+              },
+              "session": "fixture-session",
+              "x": 1.3201,
+              "y": -2.0,
+              "z": 5.3038,
+              "inventory": [
+                {
+                  "slot": 0,
+                  "item": "minecraft:dirt",
+                  "count": 16
+                }
+              ],
+              "target_block": {
+                "x": 1,
+                "y": -2,
+                "z": 7,
+                "block": "minecraft:dirt"
+              },
+              "screen_known": true
+            }
+          },
+          "expected": {
+            "action": {
+              "parsed": true,
+              "truncated": false,
+              "mouse": [
+                0.0,
+                0.0,
+                0.0
+              ],
+              "steps": [
+                [],
+                [],
+                [],
+                [],
+                [],
+                []
+              ],
+              "history_text": "<|action_start|>0 0 0 ;   ;   ;   ;   ;   ;  <|action_end|>",
+              "is_noop": true,
+              "dropped": []
+            },
+            "execute": true,
+            "feedback": {
+              "changes": [
+                "screen changed"
+              ],
+              "visual_difference": 0.0,
+              "stagnant_decisions": 0,
+              "noop_streak": 2,
+              "recoveries": 0,
+              "phase": "observing",
+              "screen_cycle_detected": false,
+              "executed": true
+            },
+            "recovery": {
+              "reset_history": false,
+              "pause": false,
+              "reason": "none"
+            }
+          }
+        },
+        {
+          "id": "alternation-03",
+          "origin": "authored-screen-sensor-perturbation",
+          "raw": "<think>\n\n</think>\n\n<|action_start|>0 0 0 ;   ;   ;   ;   ;   ;  <|action_end|>",
+          "before": {
+            "frame": "frame-020.png",
+            "sha256": "1cee545ca980bba180d23cbe8d6d25ff8a0f0c95404e9992111bd0d2bd63f58d",
+            "game": {
+              "connected": true,
+              "screen": "",
+              "health": 20.0,
+              "cursor": {
+                "x": 356,
+                "y": 268,
+                "button_mask": 0
+              },
+              "session": "fixture-session",
+              "x": 1.3201,
+              "y": -2.0,
+              "z": 5.3038,
+              "inventory": [
+                {
+                  "slot": 0,
+                  "item": "minecraft:dirt",
+                  "count": 16
+                }
+              ],
+              "target_block": {
+                "x": 1,
+                "y": -2,
+                "z": 7,
+                "block": "minecraft:dirt"
+              },
+              "screen_known": true
+            }
+          },
+          "after": {
+            "frame": "frame-020.png",
+            "sha256": "1cee545ca980bba180d23cbe8d6d25ff8a0f0c95404e9992111bd0d2bd63f58d",
+            "game": {
+              "connected": true,
+              "screen": "InventoryScreen",
+              "health": 20.0,
+              "cursor": {
+                "x": 356,
+                "y": 268,
+                "button_mask": 0
+              },
+              "session": "fixture-session",
+              "x": 1.3201,
+              "y": -2.0,
+              "z": 5.3038,
+              "inventory": [
+                {
+                  "slot": 0,
+                  "item": "minecraft:dirt",
+                  "count": 16
+                }
+              ],
+              "target_block": {
+                "x": 1,
+                "y": -2,
+                "z": 7,
+                "block": "minecraft:dirt"
+              },
+              "screen_known": true
+            }
+          },
+          "expected": {
+            "action": {
+              "parsed": true,
+              "truncated": false,
+              "mouse": [
+                0.0,
+                0.0,
+                0.0
+              ],
+              "steps": [
+                [],
+                [],
+                [],
+                [],
+                [],
+                []
+              ],
+              "history_text": "<|action_start|>0 0 0 ;   ;   ;   ;   ;   ;  <|action_end|>",
+              "is_noop": true,
+              "dropped": []
+            },
+            "execute": true,
+            "feedback": {
+              "changes": [
+                "screen changed"
+              ],
+              "visual_difference": 0.0,
+              "stagnant_decisions": 0,
+              "noop_streak": 3,
+              "recoveries": 0,
+              "phase": "observing",
+              "screen_cycle_detected": false,
+              "executed": true
+            },
+            "recovery": {
+              "reset_history": false,
+              "pause": false,
+              "reason": "none"
+            }
+          }
+        },
+        {
+          "id": "alternation-04",
+          "origin": "authored-screen-sensor-perturbation",
+          "raw": "<think>\n\n</think>\n\n<|action_start|>0 0 0 ;   ;   ;   ;   ;   ;  <|action_end|>",
+          "before": {
+            "frame": "frame-020.png",
+            "sha256": "1cee545ca980bba180d23cbe8d6d25ff8a0f0c95404e9992111bd0d2bd63f58d",
+            "game": {
+              "connected": true,
+              "screen": "InventoryScreen",
+              "health": 20.0,
+              "cursor": {
+                "x": 356,
+                "y": 268,
+                "button_mask": 0
+              },
+              "session": "fixture-session",
+              "x": 1.3201,
+              "y": -2.0,
+              "z": 5.3038,
+              "inventory": [
+                {
+                  "slot": 0,
+                  "item": "minecraft:dirt",
+                  "count": 16
+                }
+              ],
+              "target_block": {
+                "x": 1,
+                "y": -2,
+                "z": 7,
+                "block": "minecraft:dirt"
+              },
+              "screen_known": true
+            }
+          },
+          "after": {
+            "frame": "frame-020.png",
+            "sha256": "1cee545ca980bba180d23cbe8d6d25ff8a0f0c95404e9992111bd0d2bd63f58d",
+            "game": {
+              "connected": true,
+              "screen": "",
+              "health": 20.0,
+              "cursor": {
+                "x": 356,
+                "y": 268,
+                "button_mask": 0
+              },
+              "session": "fixture-session",
+              "x": 1.3201,
+              "y": -2.0,
+              "z": 5.3038,
+              "inventory": [
+                {
+                  "slot": 0,
+                  "item": "minecraft:dirt",
+                  "count": 16
+                }
+              ],
+              "target_block": {
+                "x": 1,
+                "y": -2,
+                "z": 7,
+                "block": "minecraft:dirt"
+              },
+              "screen_known": true
+            }
+          },
+          "expected": {
+            "action": {
+              "parsed": true,
+              "truncated": false,
+              "mouse": [
+                0.0,
+                0.0,
+                0.0
+              ],
+              "steps": [
+                [],
+                [],
+                [],
+                [],
+                [],
+                []
+              ],
+              "history_text": "<|action_start|>0 0 0 ;   ;   ;   ;   ;   ;  <|action_end|>",
+              "is_noop": true,
+              "dropped": []
+            },
+            "execute": true,
+            "feedback": {
+              "changes": [
+                "screen changed"
+              ],
+              "visual_difference": 0.0,
+              "stagnant_decisions": 0,
+              "noop_streak": 4,
+              "recoveries": 0,
+              "phase": "observing",
+              "screen_cycle_detected": false,
+              "executed": true
+            },
+            "recovery": {
+              "reset_history": false,
+              "pause": false,
+              "reason": "none"
+            }
+          }
+        },
+        {
+          "id": "alternation-05",
+          "origin": "authored-screen-sensor-perturbation",
+          "raw": "<think>\n\n</think>\n\n<|action_start|>0 0 0 ;   ;   ;   ;   ;   ;  <|action_end|>",
+          "before": {
+            "frame": "frame-020.png",
+            "sha256": "1cee545ca980bba180d23cbe8d6d25ff8a0f0c95404e9992111bd0d2bd63f58d",
+            "game": {
+              "connected": true,
+              "screen": "",
+              "health": 20.0,
+              "cursor": {
+                "x": 356,
+                "y": 268,
+                "button_mask": 0
+              },
+              "session": "fixture-session",
+              "x": 1.3201,
+              "y": -2.0,
+              "z": 5.3038,
+              "inventory": [
+                {
+                  "slot": 0,
+                  "item": "minecraft:dirt",
+                  "count": 16
+                }
+              ],
+              "target_block": {
+                "x": 1,
+                "y": -2,
+                "z": 7,
+                "block": "minecraft:dirt"
+              },
+              "screen_known": true
+            }
+          },
+          "after": {
+            "frame": "frame-020.png",
+            "sha256": "1cee545ca980bba180d23cbe8d6d25ff8a0f0c95404e9992111bd0d2bd63f58d",
+            "game": {
+              "connected": true,
+              "screen": "InventoryScreen",
+              "health": 20.0,
+              "cursor": {
+                "x": 356,
+                "y": 268,
+                "button_mask": 0
+              },
+              "session": "fixture-session",
+              "x": 1.3201,
+              "y": -2.0,
+              "z": 5.3038,
+              "inventory": [
+                {
+                  "slot": 0,
+                  "item": "minecraft:dirt",
+                  "count": 16
+                }
+              ],
+              "target_block": {
+                "x": 1,
+                "y": -2,
+                "z": 7,
+                "block": "minecraft:dirt"
+              },
+              "screen_known": true
+            }
+          },
+          "expected": {
+            "action": {
+              "parsed": true,
+              "truncated": false,
+              "mouse": [
+                0.0,
+                0.0,
+                0.0
+              ],
+              "steps": [
+                [],
+                [],
+                [],
+                [],
+                [],
+                []
+              ],
+              "history_text": "<|action_start|>0 0 0 ;   ;   ;   ;   ;   ;  <|action_end|>",
+              "is_noop": true,
+              "dropped": []
+            },
+            "execute": true,
+            "feedback": {
+              "changes": [
+                "screen changed"
+              ],
+              "visual_difference": 0.0,
+              "stagnant_decisions": 0,
+              "noop_streak": 5,
+              "recoveries": 0,
+              "phase": "observing",
+              "screen_cycle_detected": false,
+              "executed": true
+            },
+            "recovery": {
+              "reset_history": false,
+              "pause": false,
+              "reason": "none"
+            }
+          }
+        },
+        {
+          "id": "alternation-06",
+          "origin": "authored-screen-sensor-perturbation",
+          "raw": "<think>\n\n</think>\n\n<|action_start|>0 0 0 ;   ;   ;   ;   ;   ;  <|action_end|>",
+          "before": {
+            "frame": "frame-020.png",
+            "sha256": "1cee545ca980bba180d23cbe8d6d25ff8a0f0c95404e9992111bd0d2bd63f58d",
+            "game": {
+              "connected": true,
+              "screen": "InventoryScreen",
+              "health": 20.0,
+              "cursor": {
+                "x": 356,
+                "y": 268,
+                "button_mask": 0
+              },
+              "session": "fixture-session",
+              "x": 1.3201,
+              "y": -2.0,
+              "z": 5.3038,
+              "inventory": [
+                {
+                  "slot": 0,
+                  "item": "minecraft:dirt",
+                  "count": 16
+                }
+              ],
+              "target_block": {
+                "x": 1,
+                "y": -2,
+                "z": 7,
+                "block": "minecraft:dirt"
+              },
+              "screen_known": true
+            }
+          },
+          "after": {
+            "frame": "frame-020.png",
+            "sha256": "1cee545ca980bba180d23cbe8d6d25ff8a0f0c95404e9992111bd0d2bd63f58d",
+            "game": {
+              "connected": true,
+              "screen": "",
+              "health": 20.0,
+              "cursor": {
+                "x": 356,
+                "y": 268,
+                "button_mask": 0
+              },
+              "session": "fixture-session",
+              "x": 1.3201,
+              "y": -2.0,
+              "z": 5.3038,
+              "inventory": [
+                {
+                  "slot": 0,
+                  "item": "minecraft:dirt",
+                  "count": 16
+                }
+              ],
+              "target_block": {
+                "x": 1,
+                "y": -2,
+                "z": 7,
+                "block": "minecraft:dirt"
+              },
+              "screen_known": true
+            }
+          },
+          "expected": {
+            "action": {
+              "parsed": true,
+              "truncated": false,
+              "mouse": [
+                0.0,
+                0.0,
+                0.0
+              ],
+              "steps": [
+                [],
+                [],
+                [],
+                [],
+                [],
+                []
+              ],
+              "history_text": "<|action_start|>0 0 0 ;   ;   ;   ;   ;   ;  <|action_end|>",
+              "is_noop": true,
+              "dropped": []
+            },
+            "execute": true,
+            "feedback": {
+              "changes": [
+                "screen changed"
+              ],
+              "visual_difference": 0.0,
+              "stagnant_decisions": 1,
+              "noop_streak": 6,
+              "recoveries": 0,
+              "phase": "observing",
+              "screen_cycle_detected": true,
+              "executed": true
+            },
+            "recovery": {
+              "reset_history": false,
+              "pause": false,
+              "reason": "none"
+            }
+          }
+        },
+        {
+          "id": "alternation-07",
+          "origin": "authored-screen-sensor-perturbation",
+          "raw": "<think>\n\n</think>\n\n<|action_start|>0 0 0 ;   ;   ;   ;   ;   ;  <|action_end|>",
+          "before": {
+            "frame": "frame-020.png",
+            "sha256": "1cee545ca980bba180d23cbe8d6d25ff8a0f0c95404e9992111bd0d2bd63f58d",
+            "game": {
+              "connected": true,
+              "screen": "",
+              "health": 20.0,
+              "cursor": {
+                "x": 356,
+                "y": 268,
+                "button_mask": 0
+              },
+              "session": "fixture-session",
+              "x": 1.3201,
+              "y": -2.0,
+              "z": 5.3038,
+              "inventory": [
+                {
+                  "slot": 0,
+                  "item": "minecraft:dirt",
+                  "count": 16
+                }
+              ],
+              "target_block": {
+                "x": 1,
+                "y": -2,
+                "z": 7,
+                "block": "minecraft:dirt"
+              },
+              "screen_known": true
+            }
+          },
+          "after": {
+            "frame": "frame-020.png",
+            "sha256": "1cee545ca980bba180d23cbe8d6d25ff8a0f0c95404e9992111bd0d2bd63f58d",
+            "game": {
+              "connected": true,
+              "screen": "InventoryScreen",
+              "health": 20.0,
+              "cursor": {
+                "x": 356,
+                "y": 268,
+                "button_mask": 0
+              },
+              "session": "fixture-session",
+              "x": 1.3201,
+              "y": -2.0,
+              "z": 5.3038,
+              "inventory": [
+                {
+                  "slot": 0,
+                  "item": "minecraft:dirt",
+                  "count": 16
+                }
+              ],
+              "target_block": {
+                "x": 1,
+                "y": -2,
+                "z": 7,
+                "block": "minecraft:dirt"
+              },
+              "screen_known": true
+            }
+          },
+          "expected": {
+            "action": {
+              "parsed": true,
+              "truncated": false,
+              "mouse": [
+                0.0,
+                0.0,
+                0.0
+              ],
+              "steps": [
+                [],
+                [],
+                [],
+                [],
+                [],
+                []
+              ],
+              "history_text": "<|action_start|>0 0 0 ;   ;   ;   ;   ;   ;  <|action_end|>",
+              "is_noop": true,
+              "dropped": []
+            },
+            "execute": true,
+            "feedback": {
+              "changes": [
+                "screen changed"
+              ],
+              "visual_difference": 0.0,
+              "stagnant_decisions": 2,
+              "noop_streak": 7,
+              "recoveries": 1,
+              "phase": "reassess",
+              "screen_cycle_detected": true,
+              "executed": true
+            },
+            "recovery": {
+              "reset_history": true,
+              "pause": false,
+              "reason": "reassess"
+            }
+          }
+        },
+        {
+          "id": "alternation-08",
+          "origin": "authored-screen-sensor-perturbation",
+          "raw": "<think>\n\n</think>\n\n<|action_start|>0 0 0 ;   ;   ;   ;   ;   ;  <|action_end|>",
+          "before": {
+            "frame": "frame-020.png",
+            "sha256": "1cee545ca980bba180d23cbe8d6d25ff8a0f0c95404e9992111bd0d2bd63f58d",
+            "game": {
+              "connected": true,
+              "screen": "InventoryScreen",
+              "health": 20.0,
+              "cursor": {
+                "x": 356,
+                "y": 268,
+                "button_mask": 0
+              },
+              "session": "fixture-session",
+              "x": 1.3201,
+              "y": -2.0,
+              "z": 5.3038,
+              "inventory": [
+                {
+                  "slot": 0,
+                  "item": "minecraft:dirt",
+                  "count": 16
+                }
+              ],
+              "target_block": {
+                "x": 1,
+                "y": -2,
+                "z": 7,
+                "block": "minecraft:dirt"
+              },
+              "screen_known": true
+            }
+          },
+          "after": {
+            "frame": "frame-020.png",
+            "sha256": "1cee545ca980bba180d23cbe8d6d25ff8a0f0c95404e9992111bd0d2bd63f58d",
+            "game": {
+              "connected": true,
+              "screen": "",
+              "health": 20.0,
+              "cursor": {
+                "x": 356,
+                "y": 268,
+                "button_mask": 0
+              },
+              "session": "fixture-session",
+              "x": 1.3201,
+              "y": -2.0,
+              "z": 5.3038,
+              "inventory": [
+                {
+                  "slot": 0,
+                  "item": "minecraft:dirt",
+                  "count": 16
+                }
+              ],
+              "target_block": {
+                "x": 1,
+                "y": -2,
+                "z": 7,
+                "block": "minecraft:dirt"
+              },
+              "screen_known": true
+            }
+          },
+          "expected": {
+            "action": {
+              "parsed": true,
+              "truncated": false,
+              "mouse": [
+                0.0,
+                0.0,
+                0.0
+              ],
+              "steps": [
+                [],
+                [],
+                [],
+                [],
+                [],
+                []
+              ],
+              "history_text": "<|action_start|>0 0 0 ;   ;   ;   ;   ;   ;  <|action_end|>",
+              "is_noop": true,
+              "dropped": []
+            },
+            "execute": true,
+            "feedback": {
+              "changes": [
+                "screen changed"
+              ],
+              "visual_difference": 0.0,
+              "stagnant_decisions": 3,
+              "noop_streak": 8,
+              "recoveries": 1,
+              "phase": "reassess",
+              "screen_cycle_detected": true,
+              "executed": true
+            },
+            "recovery": {
+              "reset_history": false,
+              "pause": false,
+              "reason": "none"
+            }
+          }
+        },
+        {
+          "id": "alternation-09",
+          "origin": "authored-screen-sensor-perturbation",
+          "raw": "<think>\n\n</think>\n\n<|action_start|>0 0 0 ;   ;   ;   ;   ;   ;  <|action_end|>",
+          "before": {
+            "frame": "frame-020.png",
+            "sha256": "1cee545ca980bba180d23cbe8d6d25ff8a0f0c95404e9992111bd0d2bd63f58d",
+            "game": {
+              "connected": true,
+              "screen": "",
+              "health": 20.0,
+              "cursor": {
+                "x": 356,
+                "y": 268,
+                "button_mask": 0
+              },
+              "session": "fixture-session",
+              "x": 1.3201,
+              "y": -2.0,
+              "z": 5.3038,
+              "inventory": [
+                {
+                  "slot": 0,
+                  "item": "minecraft:dirt",
+                  "count": 16
+                }
+              ],
+              "target_block": {
+                "x": 1,
+                "y": -2,
+                "z": 7,
+                "block": "minecraft:dirt"
+              },
+              "screen_known": true
+            }
+          },
+          "after": {
+            "frame": "frame-020.png",
+            "sha256": "1cee545ca980bba180d23cbe8d6d25ff8a0f0c95404e9992111bd0d2bd63f58d",
+            "game": {
+              "connected": true,
+              "screen": "InventoryScreen",
+              "health": 20.0,
+              "cursor": {
+                "x": 356,
+                "y": 268,
+                "button_mask": 0
+              },
+              "session": "fixture-session",
+              "x": 1.3201,
+              "y": -2.0,
+              "z": 5.3038,
+              "inventory": [
+                {
+                  "slot": 0,
+                  "item": "minecraft:dirt",
+                  "count": 16
+                }
+              ],
+              "target_block": {
+                "x": 1,
+                "y": -2,
+                "z": 7,
+                "block": "minecraft:dirt"
+              },
+              "screen_known": true
+            }
+          },
+          "expected": {
+            "action": {
+              "parsed": true,
+              "truncated": false,
+              "mouse": [
+                0.0,
+                0.0,
+                0.0
+              ],
+              "steps": [
+                [],
+                [],
+                [],
+                [],
+                [],
+                []
+              ],
+              "history_text": "<|action_start|>0 0 0 ;   ;   ;   ;   ;   ;  <|action_end|>",
+              "is_noop": true,
+              "dropped": []
+            },
+            "execute": true,
+            "feedback": {
+              "changes": [
+                "screen changed"
+              ],
+              "visual_difference": 0.0,
+              "stagnant_decisions": 4,
+              "noop_streak": 9,
+              "recoveries": 2,
+              "phase": "stalled",
+              "screen_cycle_detected": true,
+              "executed": true
+            },
+            "recovery": {
+              "reset_history": true,
+              "pause": true,
+              "reason": "stalled"
+            }
+          }
+        },
+        {
+          "id": "alternation-10",
+          "origin": "authored-screen-sensor-perturbation",
+          "raw": "<think>\n\n</think>\n\n<|action_start|>0 0 0 ;   ;   ;   ;   ;   ;  <|action_end|>",
+          "before": {
+            "frame": "frame-020.png",
+            "sha256": "1cee545ca980bba180d23cbe8d6d25ff8a0f0c95404e9992111bd0d2bd63f58d",
+            "game": {
+              "connected": true,
+              "screen": "InventoryScreen",
+              "health": 20.0,
+              "cursor": {
+                "x": 356,
+                "y": 268,
+                "button_mask": 0
+              },
+              "session": "fixture-session",
+              "x": 1.3201,
+              "y": -2.0,
+              "z": 5.3038,
+              "inventory": [
+                {
+                  "slot": 0,
+                  "item": "minecraft:dirt",
+                  "count": 16
+                }
+              ],
+              "target_block": {
+                "x": 1,
+                "y": -2,
+                "z": 7,
+                "block": "minecraft:dirt"
+              },
+              "screen_known": true
+            }
+          },
+          "after": {
+            "frame": "frame-020.png",
+            "sha256": "1cee545ca980bba180d23cbe8d6d25ff8a0f0c95404e9992111bd0d2bd63f58d",
+            "game": {
+              "connected": true,
+              "screen": "",
+              "health": 20.0,
+              "cursor": {
+                "x": 356,
+                "y": 268,
+                "button_mask": 0
+              },
+              "session": "fixture-session",
+              "x": 1.3201,
+              "y": -2.0,
+              "z": 5.3038,
+              "inventory": [
+                {
+                  "slot": 0,
+                  "item": "minecraft:dirt",
+                  "count": 16
+                }
+              ],
+              "target_block": {
+                "x": 1,
+                "y": -2,
+                "z": 7,
+                "block": "minecraft:dirt"
+              },
+              "screen_known": true
+            }
+          },
+          "expected": {
+            "action": {
+              "parsed": true,
+              "truncated": false,
+              "mouse": [
+                0.0,
+                0.0,
+                0.0
+              ],
+              "steps": [
+                [],
+                [],
+                [],
+                [],
+                [],
+                []
+              ],
+              "history_text": "<|action_start|>0 0 0 ;   ;   ;   ;   ;   ;  <|action_end|>",
+              "is_noop": true,
+              "dropped": []
+            },
+            "execute": true,
+            "feedback": {
+              "changes": [
+                "screen changed"
+              ],
+              "visual_difference": 0.0,
+              "stagnant_decisions": 5,
+              "noop_streak": 10,
+              "recoveries": 2,
+              "phase": "stalled",
+              "screen_cycle_detected": true,
+              "executed": true
+            },
+            "recovery": {
+              "reset_history": false,
+              "pause": true,
+              "reason": "stalled"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "exact-1-20-1-result",
+      "settings": {},
+      "cases": [
+        {
+          "id": "confirmed-result-image",
+          "origin": "recorded-exact-post-ack-pair",
+          "raw": "<think>\n\n</think>\n\n<|action_start|>255 168 0 ;   ; LB ;   ;   ;   ;  <|action_end|>",
+          "latency_seconds": 0.73,
+          "post_ack_delay_ms": 8.171875,
+          "before": {
+            "frame": "frame-036.png",
+            "sha256": "c0d2427fd2b32898fb94863ce1fcb95b92bc1afd8dfb3127dcefb62773a898f3",
+            "game": {
+              "connected": true,
+              "screen": "net.minecraft.client.gui.screens.DeathScreen",
+              "screen_known": true,
+              "health": 0.0,
+              "cursor": {
+                "x": 432,
+                "y": 235,
+                "button_mask": 0
+              },
+              "session": "fixture-session",
+              "x": 0.6732,
+              "y": 0.0,
+              "z": 0.9784,
+              "inventory": [
+                {
+                  "slot": 0,
+                  "item": "minecraft:dirt",
+                  "count": 19
+                }
+              ]
+            }
+          },
+          "after": {
+            "frame": "frame-037.png",
+            "sha256": "1e318fea461963e56c0b0b958c645fb78160824f74f0ff69aad3f7024b14469e",
+            "game": {
+              "connected": true,
+              "screen": "net.minecraft.client.gui.screens.DeathScreen",
+              "screen_known": true,
+              "health": 0.0,
+              "cursor": {
+                "x": 649,
+                "y": 315,
+                "button_mask": 0
+              },
+              "session": "fixture-session",
+              "x": 0.6732,
+              "y": 0.0,
+              "z": 0.9784,
+              "inventory": [
+                {
+                  "slot": 0,
+                  "item": "minecraft:dirt",
+                  "count": 19
+                }
+              ]
+            }
+          },
+          "expected": {
+            "action": {
+              "parsed": true,
+              "truncated": false,
+              "mouse": [
+                255.0,
+                168.0,
+                0.0
+              ],
+              "steps": [
+                [],
+                [
+                  "LB"
+                ],
+                [],
+                [],
+                [],
+                []
+              ],
+              "history_text": "<|action_start|>255 168 0 ;   ; LB ;   ;   ;   ;  <|action_end|>",
+              "is_noop": false,
+              "dropped": []
+            },
+            "execute": true,
+            "feedback": {
+              "changes": [],
+              "visual_difference": 0.03,
+              "stagnant_decisions": 1,
+              "noop_streak": 0,
+              "recoveries": 0,
+              "phase": "observing",
+              "screen_cycle_detected": false,
+              "executed": true
+            },
+            "recovery": {
+              "reset_history": false,
+              "pause": false,
+              "reason": "none"
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

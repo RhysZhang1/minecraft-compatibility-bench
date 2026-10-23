@@ -1,5 +1,7 @@
 # 迁移与环境
 
+[English](PORTABILITY.en.md)
+
 ## 版本边界
 
 | 客户端 | 输入/截图后端 | 只读状态 | 本机验证 |
@@ -15,7 +17,7 @@
 
 ## 配置层次
 
-- `instance-settings.json`：可公开的内置实例。包含客户端位置/清单、服务端、连接、后端、world_id和资源设置。
+- `instance-settings.json`：带占位符和说明的公开模板；首次克隆没有可运行实例。实际路径与世界标识由向导写入本地配置。
 - `local-instances.json`：本机导入路径和覆盖项，Git忽略。原版测试服实际位置可以在桌面MC26.3，客户端/模型仍在本工作区。
 - `local-settings.json`：本机Java、llama.cpp路径，Git忽略。环境变量 `MINECRAFT_JAVA_BIN`、`LLAMA_SERVER_BIN`、`LLAMA_CPP_SOURCE` 可覆盖。
 - `game-settings.json`：公共资源基线；实例的resources再覆盖。GTNH仍为原来的服务器6G、客户端最高8G，原版测试服/客户端各最高4G。

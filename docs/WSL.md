@@ -1,5 +1,7 @@
 # WSL支持状态
 
+[English](WSL.en.md)
+
 **当前未完成WSL端到端适配，也没有WSL实机测试。v0.1.0只声明Linux本机验证通过。** 本机测试环境是Arch Linux，不能据此宣称Windows或WSL已经可用。
 
 | 环境 | 当前状态 |

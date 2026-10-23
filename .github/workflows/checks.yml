@@ -13,12 +13,29 @@ jobs:
         with:
           python-version: '3.11'
           cache: pip
-      - run: python -m pip install -r requirements.txt -r requirements-hub.txt
+      - run: python -m pip install -e ".[dev,hub]"
       - name: Shell and Python syntax
         run: |
           bash -n start.sh stop.sh setup.sh scripts/download_models.sh scripts/serve_model.sh
-          python -m compileall -q src scripts tests
-      - run: python -m unittest discover -s tests -v
+          python -m compileall -q mcbench scripts tests
+      - name: Style and offline regressions (no GPU or X11)
+        env:
+          DISPLAY: ''
+          WAYLAND_DISPLAY: ''
+          CUDA_VISIBLE_DEVICES: ''
+        run: |
+          ruff check mcbench scripts tests
+          ruff format --check mcbench scripts tests
+          python -m unittest discover -s tests -v
+          mcbench replay tests/fixtures/golden/replay.json
+      - name: Build and test installed wheel outside checkout
+        run: |
+          python -m build --wheel
+          python -m venv /tmp/mcbench-wheel
+          /tmp/mcbench-wheel/bin/pip install dist/*.whl
+          cd /tmp
+          env -u DISPLAY -u WAYLAND_DISPLAY -u PYTHONPATH MCBENCH_WORKSPACE="$GITHUB_WORKSPACE" /tmp/mcbench-wheel/bin/mcbench replay "$GITHUB_WORKSPACE/tests/fixtures/golden/replay.json"
+          env -u DISPLAY -u WAYLAND_DISPLAY -u PYTHONPATH MCBENCH_WORKSPACE="$GITHUB_WORKSPACE" /tmp/mcbench-wheel/bin/python -m unittest discover -s "$GITHUB_WORKSPACE/tests" -v
       - name: Clean checkout entry points
         run: |
           ./setup.sh --doctor

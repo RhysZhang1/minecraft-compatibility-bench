@@ -1,5 +1,7 @@
 # 原版与通用通道验收
 
+[English](VANILLA-VALIDATION.en.md)
+
 日期：2026-10-23，Asia/Shanghai。以下为本机实际执行结果，不是论文基准复现。
 
 | 版本 | Java | 移动/转向 | 背包 | 连续挖掘与拾取 | 暂停释放 |

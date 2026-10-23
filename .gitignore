@@ -28,3 +28,8 @@ restore-source.tar.gz
 *.before-rebind.json
 SOURCE-MANIFEST.json
 release/
+
+*.egg-info/
+build/
+dist/
+.ruff_cache/
