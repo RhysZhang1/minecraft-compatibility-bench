@@ -13,6 +13,7 @@ from urllib.parse import urlparse
 
 from mcbench import instance_config
 from mcbench.feedback import Feedback
+from mcbench.intervention import InterventionBusy
 from mcbench.io_utils import atomic, readjson
 
 if TYPE_CHECKING:
@@ -101,6 +102,7 @@ class Handler(BaseHTTPRequestHandler):
             "/api/memory/summarize",
             "/api/memory/checkpoint",
             "/api/instance/switch",
+            "/api/intervention",
         ]:
             self.send_error(404)
             return
@@ -120,6 +122,8 @@ class Handler(BaseHTTPRequestHandler):
                 if not isinstance(key, str) or key not in instance_config.settings()["instances"]:
                     raise ValueError("未知实例")
                 c = instance_config.config(key)
+                if self.runtime.intervention.active:
+                    raise ValueError("手动动作正在执行，请先释放输入")
                 if self.runtime.state.get("switching"):
                     raise ValueError("正在切换，请等待观察台重连")
                 if (self.runtime.root / "runtime/stop.request").exists():
@@ -158,6 +162,17 @@ class Handler(BaseHTTPRequestHandler):
             except (OSError, ValueError) as exc:
                 self.json_response(400, {"error": str(exc)})
                 return
+        if self.path == "/api/intervention":
+            try:
+                result = self.runtime.intervention.run(body)
+                self.json_response(200, {"ok": True, "result": result})
+            except InterventionBusy as exc:
+                self.json_response(409, {"ok": False, "error": str(exc)})
+            except ValueError as exc:
+                self.json_response(400, {"ok": False, "error": str(exc)})
+            except (OSError, TimeoutError, InterruptedError) as exc:
+                self.json_response(503, {"ok": False, "error": str(exc)})
+            return
         if self.path == "/api/server/command":
             try:
                 self.json_response(
@@ -215,11 +230,15 @@ class Handler(BaseHTTPRequestHandler):
             self.json_response(200, {"ok": True})
             return
         with self.runtime.lock:
+            if body.get("enabled") and self.runtime.intervention.active:
+                self.json_response(409, {"ok": False, "error": "手动动作未结束，请先释放输入"})
+                return
             self.runtime.control_epoch += 1
             self.runtime.publish_safety()
             if "enabled" in body:
                 self.runtime.state["enabled"] = bool(body["enabled"])
                 if self.runtime.state["enabled"]:
+                    self.runtime.history.clear()
                     self.runtime.feedback = Feedback(self.runtime.control_settings)
                     self.runtime.state["recovery_reason"] = ""
                     self.runtime.state["feedback"] = {}

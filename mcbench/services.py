@@ -142,6 +142,7 @@ class RuntimeServices:
         with self.runtime.lock:
             result = dict(self.runtime.state)
         result["game"] = readjson(self.runtime.bridge / "state.json")
+        result["intervention"] = self.runtime.intervention.status()
         if time.time() - result["game"].get("timestamp", 0) / 1000 > 10:
             result["game"]["connected"] = False
         result["memory"] = self.memory()

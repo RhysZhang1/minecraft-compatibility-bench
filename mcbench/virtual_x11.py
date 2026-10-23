@@ -347,7 +347,15 @@ class Session:
             raise ConnectionError("虚拟输入设备未就绪")
         keys = set(keys)
         buttons = {"LB": 1, "RB": 3, "MB": 2}
-        for name in self.held ^ keys:
+        modifiers = {"Shift", "Ctrl"}
+
+        def order(name):
+            down = name in keys
+            priority = 0 if name in modifiers else 2 if name in buttons else 1
+            return (int(down), priority if down else -priority, name)
+
+        # Modifier presses precede clicks; button releases precede modifier releases.
+        for name in sorted(self.held ^ keys, key=order):
             down = int(name in keys)
             if name in buttons:
                 self.ei.gs_button({"LB": 272, "RB": 273, "MB": 274}[name], down)
@@ -358,6 +366,11 @@ class Session:
 
     def center(self):
         self.ei.gs_absolute(self.width / 2, self.height / 2)
+
+    def point(self, x: float, y: float) -> None:
+        """Move to a screenshot-normalized point inside the private game window."""
+        target_x, target_y = x * (self.width - 1), y * (self.height - 1)
+        self.ei.gs_absolute(target_x, target_y)
 
     def move(self, dx, dy, scroll):
         self.ei.gs_motion(dx * self.width / 1000, dy * self.height / 1000)

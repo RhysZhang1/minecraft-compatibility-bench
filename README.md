@@ -46,6 +46,8 @@ The default connection mode leaves the existing server's files and process under
 
 Open <http://127.0.0.1:8790/> for live frames, actual model output, actions, feedback and editable continuation notes. Only managed test copies receive default peaceful/keep-inventory settings. External servers retain their settings and do not expose a management console through this tool.
 
+When the model gets stuck, use **临时手动干预** (temporary manual control): enable frame clicks/dragging, or send a bounded key press with the on-screen controls. Intervention pauses the model and invalidates pending model actions. **释放全部输入** releases held input; **交还模型** explicitly resumes from a fresh observation. Input stays inside the private client display. See [manual intervention](docs/INTERVENTION.en.md) for controls and backend limits.
+
 For remote viewing, forward the loopback dashboard:
 
 ```bash

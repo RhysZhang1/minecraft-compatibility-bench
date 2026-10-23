@@ -73,6 +73,7 @@ class Runtime:
         self.feedback = Feedback(self.control_settings)
         self.marker_cache = {}
         self.gpu = {}
+        from mcbench.intervention import Intervention
         from mcbench.loop import DecisionLoop
         from mcbench.prompt import PromptBuilder
         from mcbench.services import RuntimeServices
@@ -80,6 +81,7 @@ class Runtime:
         self.prompt = PromptBuilder(self)
         self.loop = DecisionLoop(self)
         self.services = RuntimeServices(self)
+        self.intervention = Intervention(self)
 
     def request(self, path: str, body: dict[str, Any] | None = None, timeout: float = 10) -> Any:
         req = Request(

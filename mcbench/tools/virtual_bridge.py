@@ -11,6 +11,7 @@ from PIL import ImageDraw
 
 from mcbench import instance_config as ic
 from mcbench import server_console as server_console
+from mcbench.intervention import ManualPlayback
 from mcbench.paths import ROOT
 from mcbench.virtual_x11 import Session
 
@@ -69,6 +70,8 @@ def main():
     x = Session()
     ident = read("command.json").get("id", -1)
     action = None
+    manual = None
+    manual_command = None
     start = 0
     frame_id = 0
     last_frame = 0
@@ -115,8 +118,22 @@ def main():
                 prime = None
             x.ei.gs_pump()
             value = read("command.json")
-            if now >= pointer_ready_at and not action and value.get("id", -1) > ident:
+            if (
+                now >= pointer_ready_at
+                and not action
+                and manual is None
+                and value.get("id", -1) > ident
+            ):
                 ident = value["id"]
+                if value.get("source") == "human" and value.get("manual"):
+                    x.apply(set())
+                    mining = None
+                    manual_command = value
+                    manual = ManualPlayback(
+                        value["manual"], now, value.get("session"), value.get("screen")
+                    )
+                if manual is not None:
+                    continue
                 previous = mining
                 continuation = bool(
                     previous
@@ -177,6 +194,24 @@ def main():
                 else:
                     step = min(5, int(elapsed / 33.333))
                     x.apply(action.get("steps", [[]] * 6)[step])
+            if manual is not None:
+                result = manual.tick(
+                    now, x, sensor, lease(manual_command.get("epoch")) and bool(x.window)
+                )
+                if result is not None:
+                    write(
+                        "completed.json",
+                        {
+                            "id": ident,
+                            "time": now,
+                            "session": session,
+                            "source": "human",
+                            "mining_active": False,
+                            **result,
+                        },
+                    )
+                    manual = None
+                    manual_command = None
             if now - last_frame >= 1000 / fps and x.window:
                 try:
                     im = x.capture()
@@ -234,7 +269,7 @@ def main():
                     "screen": screen,
                     "screen_known": "screen" in sensor,
                     "command_id": ident,
-                    "busy": bool(action),
+                    "busy": bool(action) or manual is not None,
                     "mining_active": bool(mining),
                     "left_button_down": "LB" in x.held,
                     "held_keys": sorted(x.held),
@@ -247,6 +282,7 @@ def main():
                         "inventory": bool(sensor.get("inventory") is not None),
                         "block_target": bool(sensor),
                         "mining_hold": bool(sensor),
+                        "manual_input": True,
                     },
                 }
                 write("state.json", state)
