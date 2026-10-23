@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
 """Minecraft RCON, restricted to this workspace's loopback test server."""
 from pathlib import Path
 import json, re, secrets, socket, struct, threading

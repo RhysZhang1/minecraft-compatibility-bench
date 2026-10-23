@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
 """Rebind an already extracted private snapshot to its new directory; no deletion."""
 from pathlib import Path
 import argparse,json,os,sys,shutil

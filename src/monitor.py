@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
 """Local-only dashboard and supervised pixel-to-action loop."""
 from __future__ import annotations
 import base64, collections, hashlib, io, json, os, subprocess, sys, threading, time, traceback
@@ -284,11 +285,14 @@ def status():
         result['game']['connected']=False
     result['memory']=memory();result['gpu']=dict(GPU)
     result['model']=readjson(ROOT/'runtime/model-active.json');result['instance']={k:INSTANCE[k] for k in ['key','label','minecraft_version','backend','world_id']}
+    result['server_managed']=instance_config.managed()
     mv=MEMORY.view(STATE['goal'])
     result['agent_memory']={k:mv[k] for k in ['revision','summary_at','summary_step','pending','running','error','updated_at','prompt_chars']}
     with LOCK:result['console']=dict(CONSOLE)
     result['processes']={}
     for name in ['server','client','model']:
+        if name=='server' and not instance_config.managed():
+            result['processes'][name]={'external':True,'alive':bool(result['game'].get('connected'))};continue
         try:
             pid=int((ROOT/f'runtime/{name}.pid').read_text());s=Path(f'/proc/{pid}/status').read_text()
             rss=next((int(x.split()[1])/1024 for x in s.splitlines() if x.startswith('VmRSS:')),0)

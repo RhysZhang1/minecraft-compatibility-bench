@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
 from pathlib import Path
 import sys,unittest,tempfile
 from types import SimpleNamespace
@@ -7,6 +8,13 @@ import manage
 import lifecycle
 
 class OwnershipTests(unittest.TestCase):
+    def test_unmanaged_connection_needs_no_server_jar_to_start_its_client(self):
+        with tempfile.TemporaryDirectory() as folder:
+            root=Path(folder);(root/'runtime/bridge').mkdir(parents=True);(root/'logs').mkdir()
+            conf={'server':{'managed':False}}
+            with patch.object(manage,'ROOT',root),patch.object(manage.instance_config,'config',return_value=conf),patch('game_config.config',return_value={'server':{},'client':{}}),patch.object(manage,'owned_pids',return_value=[]),patch.object(manage.subprocess,'Popen',return_value=SimpleNamespace(pid=123)):
+                self.assertTrue(manage.start('client'))
+
     def test_display_publisher_is_one_service_with_its_compositor_supervisor(self):
         root=manage.ROOT;script=str(root/'scripts/virtual_display.py')
         def inspect(pid):return (['python3',script,'serve' if pid==100 else 'publish'],root)

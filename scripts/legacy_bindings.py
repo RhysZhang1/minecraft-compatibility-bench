@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
 """Small 1.7.10 API-name table, reproducible from an installed Forge SRG resource.
 No Minecraft code or assets are included. Input itself never depends on this table.
 """

@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
 """Reproduce local official 2B -> F16 + Q4_K_M + vision GGUF conversion."""
 from pathlib import Path
 import hashlib,importlib.metadata,json,os,shutil,struct,subprocess,sys

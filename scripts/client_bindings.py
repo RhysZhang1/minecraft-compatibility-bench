@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
 """Mojang-published names -> runtime names; optional telemetry never guesses facts."""
 from pathlib import Path
 import json,re,sys

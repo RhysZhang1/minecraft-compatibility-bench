@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
 """Manage only positively identified processes of this workspace, including stale PID recovery."""
 from pathlib import Path
 import argparse, json, os, signal, stat, subprocess, time, sys
@@ -78,13 +79,13 @@ def start(name,profile='balanced'):
         # appear connected before Forge has finished loading.
         (ROOT/'runtime/bridge/state.json').unlink(missing_ok=True)
     cwd=ROOT
-    args={
+    commands={
       'display':[str(ROOT/'.venv/bin/python'),str(ROOT/'scripts/virtual_display.py'),'serve'],
       'bridge':[str(ROOT/'.venv/bin/python'),str(ROOT/'scripts/virtual_bridge.py')],
-      'server':[instance_config.java(),'-Xms'+game['server']['min_heap'],'-Xmx'+game['server']['max_heap'],'-Dfml.readTimeout=600',*server.get('jvm_args',[]),'-jar',server['jar'],'nogui'],
       'client':[str(ROOT/'.venv/bin/python'),str(ROOT/'scripts/launch_game.py')],
       'model':['bash',str(ROOT/'scripts/serve_model.sh'),profile],
-      'monitor':[str(ROOT/'.venv/bin/python'),str(ROOT/'src/monitor.py')]}[name]
+      'monitor':[str(ROOT/'.venv/bin/python'),str(ROOT/'src/monitor.py')]}
+    args=[instance_config.java(),'-Xms'+game['server']['min_heap'],'-Xmx'+game['server']['max_heap'],'-Dfml.readTimeout=600',*server.get('jvm_args',[]),'-jar',server['jar'],'nogui'] if name=='server' else commands[name]
     stdin=subprocess.DEVNULL
     if name=='server':
         configure();cwd=instance_config.server_directory(ROOT);fifo=ROOT/'runtime/server.stdin'

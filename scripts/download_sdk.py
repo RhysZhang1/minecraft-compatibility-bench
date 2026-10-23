@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
 """Optional small ASM build SDK from the official Maven Central repository."""
 from pathlib import Path
 import hashlib,json,sys,urllib.request

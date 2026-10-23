@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
 """Public source release and offline private snapshot, with verifiable manifests."""
 from pathlib import Path
 import argparse,hashlib,json,os,subprocess,sys,tarfile,time

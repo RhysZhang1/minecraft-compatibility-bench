@@ -1,5 +1,7 @@
 # 安装、运行与排障
 
+已有服务器可直接运行 `./setup.sh --server-dir /你的服务器目录`；详见 [部署向导](SERVER-DEPLOYMENT.md) 与 [无桌面运行条件](HEADLESS.md)。
+
 这是一个实验性的 Linux Minecraft 视觉模型控制工具。请先在独立测试世界使用；原版基础操作通过不代表模型能完成复杂合成或任意整合包任务。
 
 WSL2/WSLg尚未完成实机适配；当前不能保证在WSL运行，详见 [WSL支持状态](WSL.md)。

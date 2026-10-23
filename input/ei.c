@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 /* Input sender for the project's PRIVATE KWin bus. No default/session bus fallback. */
 #include <libei.h>
 #include <dbus/dbus.h>

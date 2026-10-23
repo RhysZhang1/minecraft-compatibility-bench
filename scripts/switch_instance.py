@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
 """Outlive the monitor while it restarts into another registered instance."""
 from pathlib import Path
 import argparse,os,subprocess,sys

@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
 """Protocol compatibility checks; no GPU or game required."""
 import sys,unittest
 from pathlib import Path

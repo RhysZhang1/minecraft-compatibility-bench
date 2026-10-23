@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
 """Build Linux private-display input sender using standard libei and D-Bus SDKs."""
 from pathlib import Path
 import subprocess

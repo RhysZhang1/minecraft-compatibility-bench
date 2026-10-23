@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
 """Shared model selection for launch, ownership checks, readiness and dashboard."""
 from pathlib import Path
 import json,os

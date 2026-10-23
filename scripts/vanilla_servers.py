@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
 """Independent loopback vanilla server testbeds; no client support is implied."""
 from pathlib import Path
 import argparse,hashlib,json,os,re,secrets,shutil,signal,socket,subprocess,sys,time,urllib.request,zipfile

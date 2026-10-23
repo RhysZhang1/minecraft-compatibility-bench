@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
 """Build the process-local input agent from the already installed GTNH ASM runtime."""
 from pathlib import Path
 import subprocess

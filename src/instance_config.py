@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
 """Instance profiles: pack-independent connection, launch and per-world state."""
 from pathlib import Path
 import json,os,re
@@ -24,7 +25,10 @@ def selected():
 def config(key=None):
     key=key or selected();all_settings=settings()['instances']
     if key not in all_settings:raise ValueError('未知游戏实例：'+str(key))
-    value={'key':key,**all_settings[key]}
+    return validate(key,all_settings[key])
+
+def validate(key,profile):
+    value={'key':key,**profile}
     backend=BACKENDS.get(value.get('backend'))
     if not backend or value.get('minecraft_version') not in backend['minecraft_versions']:
         raise ValueError('该客户端版本需要对应输入后端，不能仅改版本号复用：'+str(value.get('backend')))

@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
 """Install official Linux client resources into the workspace, without accounts."""
 from pathlib import Path
 import argparse,concurrent.futures,json,shutil,sys,time

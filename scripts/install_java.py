@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
 """Install project-local Mojang launcher runtimes; every file uses its official SHA1."""
 from pathlib import Path
 import argparse,concurrent.futures,json,sys

@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
 """Launch selected checkpoint with a model-specific GPU budget."""
 from pathlib import Path
 import json,os,sys,time
@@ -15,7 +16,7 @@ def launch_config(conf,profile):
          '--gpu-layers',str(layers),'--mmproj-offload' if vision else '--no-mmproj-offload',
          '--host','127.0.0.1','--port','8789','--alias','gamescaling','--ctx-size','8192','--parallel','1',
          '--cache-ram','0','--ctx-checkpoints','2',
-         '--threads','6','--threads-batch','6','--batch-size','128','--ubatch-size','64',
+         '--threads',os.environ.get('MODEL_THREADS','6'),'--threads-batch',os.environ.get('MODEL_THREADS','6'),'--batch-size','128','--ubatch-size','64',
          '--special','--jinja','--chat-template-file',str(ROOT/conf['template']),
          '--reasoning-format','none','--no-context-shift']
     if profile=='cpu':cmd[1:1]=['--device','none']

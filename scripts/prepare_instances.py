@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
 """Prepare configured private instances; never overwrite the original installation."""
 from pathlib import Path
 import json,os,shutil,sys
@@ -16,6 +17,10 @@ def main():
             if source:
                 source=instance_config.path(source)
                 if not source.is_dir():raise RuntimeError('实例来源不存在：'+str(source))
+                if role=='server' and c.get('deployment_origin'):
+                    import deployment
+                    original=deployment.inspect_server(source,c['minecraft_version'])
+                    if original['processes'] or original['listening']:raise RuntimeError('创建托管世界副本前必须停止原服务器；原件未复制或修改')
                 shutil.copytree(source,target,ignore=shutil.ignore_patterns('logs','crash-reports','backups'))
             elif role=='server' and bootstrap.get('server_files'):
                 sources={name:instance_config.path(p) for name,p in bootstrap['server_files'].items()}

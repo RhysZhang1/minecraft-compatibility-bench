@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 package gssensors;
 import java.lang.instrument.*;
 import java.security.ProtectionDomain;

@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
 from pathlib import Path
 import os, subprocess, sys
 ROOT=Path(__file__).resolve().parents[1]

@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
 """Cold start, readiness checks and complete project shutdown (Linux desktop)."""
 from pathlib import Path
 import argparse, contextlib, fcntl, hashlib, json, os, shutil, signal, socket, subprocess, sys, time
@@ -200,11 +201,24 @@ def stopped_ports():
             if sock.connect_ex(('127.0.0.1',port))==0:result.append(port)
     return result
 
+def apply_model_preference(args):
+    preference=instance_config.config().get('model',{})
+    explicit_profile=args.profile
+    if args.model:model_config.select(args.model)
+    elif preference.get('key'):model_config.select(preference['key'])
+    args.profile=args.profile or preference.get('profile','balanced')
+    if preference.get('key')==model_config.selected():
+        if 'threads' in preference:os.environ.setdefault('MODEL_THREADS',str(preference['threads']))
+        if explicit_profile is None or explicit_profile==preference.get('profile'):
+            if 'gpu_layers' in preference:os.environ.setdefault('MODEL_GPU_LAYERS',str(preference['gpu_layers']))
+            if 'vision_gpu' in preference:os.environ.setdefault('MODEL_VISION_GPU','1' if preference['vision_gpu'] else '0')
+        if args.profile!='cpu' and preference.get('gpu_index') is not None:os.environ.setdefault('CUDA_VISIBLE_DEVICES',str(preference['gpu_index']))
+
 def cold_start(args):
     started=[]
     STOP_REQUEST.unlink(missing_ok=True)
     try:
-        if args.model:model_config.select(args.model)
+        apply_model_preference(args)
         say('启动实例：'+instance_config.config()['label']);say('检查运行环境、模型及启动资源…');preflight()
         if manage.owned('model'):
             argv,_=manage.inspect(manage.owned('model'))
@@ -266,7 +280,7 @@ def main():
     parser.add_argument('action',choices=['start','stop','status'])
     parser.add_argument('--instance',help='选择游戏实例；切换前先正常停止游戏服务')
     parser.add_argument('--model',choices=['2b','9b'],help='选择并记住模型；默认2b，9b保留可切换')
-    parser.add_argument('--profile',choices=['balanced','cpu'],default='balanced',help='2B默认全GPU，9B默认8层GPU；cpu为纯CPU推理')
+    parser.add_argument('--profile',choices=['balanced','cpu'],default=None,help='未指定时优先使用实例推荐配置；旧实例默认balanced')
     parser.add_argument('--paused',action='store_true',help='全部就绪后保持自动操作暂停')
     parser.add_argument('--no-open',action='store_true',help='不自动打开浏览器')
     parser.add_argument('--timeout',type=int,default=600,help='每阶段就绪等待秒数，默认600')

@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
 """Game resource settings, separate from model placement and private credentials."""
 from pathlib import Path
 import json,re

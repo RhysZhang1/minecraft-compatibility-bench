@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
 """Machine-local paths; never embed an author's absolute home in launch code."""
 import json,os
 from pathlib import Path

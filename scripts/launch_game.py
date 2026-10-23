@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
 """Launch the copied GTNH installation without reading HMCL account credentials."""
 from pathlib import Path
 import json, os, re, subprocess, sys, uuid, zipfile

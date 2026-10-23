@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
 """Persistent game notes, separating observed facts, user notes and model proposals."""
 from pathlib import Path
 import datetime,hashlib,json,math,os,tempfile,threading,time

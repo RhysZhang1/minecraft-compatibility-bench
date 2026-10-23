@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
 """Failure/retry checks for installation, conversion and complete shutdown."""
 from pathlib import Path
 import json,os,subprocess,sys,tempfile,unittest

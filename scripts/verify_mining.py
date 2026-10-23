@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
 """Live survival mining acceptance with a temporary, cleaned-up air-space fixture.
 
 Pauses AI, keeps original inventory, restores position; does not credit model ability.

@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
 """Interactive, project-local setup. Inspection never downloads or changes model."""
 from pathlib import Path
 import argparse,hashlib,json,os,shutil,subprocess,sys,ctypes.util,platform
@@ -97,10 +98,20 @@ def vanilla():
     print('安装完成：./start.sh --instance '+key+' --paused')
 
 def main():
-    p=argparse.ArgumentParser();p.add_argument('--doctor',action='store_true');p.add_argument('--verify-models',action='store_true');a=p.parse_args()
+    p=argparse.ArgumentParser();p.add_argument('--doctor',action='store_true');p.add_argument('--verify-models',action='store_true')
+    p.add_argument('--server-dir',help='已有服务器目录，进入检测/推荐/添加向导');p.add_argument('--inspect-server',help='只读检测服务器并推荐部署方案')
+    p.add_argument('--version',help='元数据无法识别时指定MC基础版本');a=p.parse_args()
+    if a.server_dir or a.inspect_server:
+        import deploy_server,deployment
+        try:
+            if a.inspect_server:print(json.dumps(deployment.plan(ROOT,deployment.inspect_server(a.inspect_server,a.version)),ensure_ascii=False,indent=2))
+            else:deploy_server.wizard(a.server_dir,a.version)
+            return 0
+        except (ValueError,OSError,subprocess.CalledProcessError,EOFError,KeyboardInterrupt) as exc:
+            print('未完成：'+(str(exc) or '已取消'),file=sys.stderr);return 1
     if a.doctor or a.verify_models:doctor(a.verify_models);return
     while True:
-        print('\nMinecraft × GameScaling 本地配置\n1 检测环境/模型\n2 配置环境与依赖\n3 检测、下载、准备模型\n4 列出/切换实例\n5 导入兼容客户端和服务器\n6 安装指定版本原版客户端、服务器与Java\n7 备份（源码或完整私有备份）\n8 下载并编译llama.cpp（可选）\n0 退出')
+        print('\nMinecraft × GameScaling 本地配置\n1 检测环境/模型\n2 配置环境与依赖\n3 检测、下载、准备模型\n4 列出/切换实例\n5 导入兼容客户端和服务器\n6 安装指定版本原版客户端、服务器与Java\n7 备份（源码或完整私有备份）\n8 下载并编译llama.cpp（可选）\n9 为已有服务器检测环境、推荐模型并添加AI\n0 退出')
         try:
             choice=prompt('选择','1')
             if choice=='0':return
@@ -119,6 +130,9 @@ def main():
             elif choice=='8':
                 destination=prompt('新建llama.cpp目录',ROOT/'engines/llama.cpp');cuda=yes('启用CUDA（需要已安装CUDA编译工具）？');jobs=prompt('编译并发数','2')
                 if yes('从官方仓库下载固定版本并在上面的新目录编译？'):run([sys.executable,ROOT/'scripts/build_engine.py',destination,'--jobs',jobs]+([] if cuda else ['--cpu']))
+            elif choice=='9':
+                import deploy_server
+                deploy_server.wizard()
             else:print('无效选择')
         except (ValueError,OSError,subprocess.CalledProcessError) as exc:print('未完成：'+str(exc))
-if __name__=='__main__':main()
+if __name__=='__main__':sys.exit(main())

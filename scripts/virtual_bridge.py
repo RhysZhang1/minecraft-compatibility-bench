@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
 """Shared pixel/action backend for vanilla and modded clients in a private display."""
 from pathlib import Path
 import io,json,os,signal,sys,threading,time,uuid

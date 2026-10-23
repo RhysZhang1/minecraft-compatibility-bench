@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
 """Extract structured early quest requirements from the installed pack."""
 from pathlib import Path
 import hashlib,json,re

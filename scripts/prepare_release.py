@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
 """Restore verified project-built bridge binaries from a source release archive."""
 from pathlib import Path
 import hashlib,json,shutil

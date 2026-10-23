@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
 """X11 capture/input restricted to our private headless compositor, never DISPLAY."""
 import ctypes as C,os,json
 from pathlib import Path

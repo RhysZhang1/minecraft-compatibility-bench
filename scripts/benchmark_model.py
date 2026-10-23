@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
 """Replay saved screenshots/history against the active model; never execute actions."""
 from pathlib import Path
 import argparse,base64,json,statistics,subprocess,sys,threading,time

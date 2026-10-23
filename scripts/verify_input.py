@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
 """Live acceptance test against the copied client, without desktop input injection."""
 from pathlib import Path
 import hashlib, json, time, urllib.request

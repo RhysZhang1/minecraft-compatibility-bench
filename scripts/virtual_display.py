@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
 """Private headless Wayland compositor + Xwayland; never connects to desktop X11."""
 from pathlib import Path
 import argparse,json,os,signal,subprocess,sys,time

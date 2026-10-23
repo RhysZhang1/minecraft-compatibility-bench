@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
 """Normalize absent-MTP metadata, without changing a single tensor byte."""
 from pathlib import Path
 import hashlib,json,shutil,struct

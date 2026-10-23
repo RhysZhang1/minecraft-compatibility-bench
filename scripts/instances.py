@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
 """Inspect, select or import an installed compatible client/server pair."""
 import argparse,json,sys,uuid
 from pathlib import Path
@@ -9,15 +10,13 @@ def idle():
     if any(manage.owned_pids(n) for n in ('server','client','monitor')):
         raise ValueError('请先运行stop.sh，实例切换和导入只在完全停止游戏后进行')
 def register(value):
-    idle();key=value.pop('key');ic.config()  # validate current registry before changing it
+    idle();value=dict(value);key=value.pop('key');ic.config()
     if key in ic.settings()['instances']:raise ValueError('实例ID已存在；不会覆盖原配置')
     p=ROOT/'local-instances.json'
     current=json.loads(p.read_text()) if p.exists() else {'instances':{}}
     current['instances'][key]=value
     # Validate before publishing the candidate, including backend support.
-    import unittest.mock
-    merged=ic.settings();merged['instances'][key]=value
-    with unittest.mock.patch.object(ic,'settings',return_value=merged):ic.config(key)
+    ic.validate(key,value)
     tmp=p.with_suffix('.tmp');tmp.write_text(json.dumps(current,ensure_ascii=False,indent=2)+'\n');tmp.chmod(0o600);tmp.replace(p)
     return key
 

@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
 """Live generic acceptance: real movement, GUI, held mining and pause release."""
 from pathlib import Path
 import json,sys,time,urllib.request,shutil,math

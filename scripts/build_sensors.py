@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
 """Build optional read-only telemetry; redistribute only our classes and BSD ASM."""
 from pathlib import Path
 import os,subprocess,sys,zipfile

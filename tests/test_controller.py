@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
 from pathlib import Path
 import base64,collections,io,json,os,sys,tempfile,time,unittest
 from unittest.mock import patch

@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
 """Optional reproducible project-local llama.cpp build; never resets existing trees."""
 from pathlib import Path
 import argparse,os,subprocess,sys

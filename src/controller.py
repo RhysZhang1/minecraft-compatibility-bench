@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
 """Generic observation/action feedback; no pack names, recipes or button choices."""
 from dataclasses import dataclass
 from collections import deque
