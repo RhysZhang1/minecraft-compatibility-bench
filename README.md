@@ -1,6 +1,6 @@
 # Minecraft GameScaling Agent
 
-[安装与排障](docs/INSTALL.md) · [适配范围](docs/PORTABILITY.md) · [基础验收](docs/VANILLA-VALIDATION.md) · [发布前审查](docs/RELEASE-CHECKS.md)
+[安装与排障](docs/INSTALL.md) · [适配范围](docs/PORTABILITY.md) · [基础验收](docs/VANILLA-VALIDATION.md) · [发布前审查](docs/RELEASE-CHECKS.md) · [WSL支持状态](docs/WSL.md)
 
 以原版 Minecraft 为基线，把视觉模型接到真实游戏客户端。模型只根据画面和观测生成动作；兼容层负责后台输入、截图、动作确认、反馈、记忆与启停。
 

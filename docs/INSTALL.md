@@ -2,6 +2,8 @@
 
 这是一个实验性的 Linux Minecraft 视觉模型控制工具。请先在独立测试世界使用；原版基础操作通过不代表模型能完成复杂合成或任意整合包任务。
 
+WSL2/WSLg尚未完成实机适配；当前不能保证在WSL运行，详见 [WSL支持状态](WSL.md)。
+
 ## 1. 系统条件
 
 本机验证环境为 Linux x86_64、KWin 6.8、Xwayland、libei 与 NVIDIA RTX 5060（8GB显存），内存约30GiB。未验证 Windows、macOS、其他桌面合成器或 AMD/Intel 显卡。KWin 使用独立虚拟会话，当前桌面不必切换成 KDE，但系统必须具备可运行的 KWin/Xwayland 和 OpenGL 驱动。
